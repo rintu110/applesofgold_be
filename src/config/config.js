@@ -11,13 +11,36 @@ const config = {
     USER: {
       REGISTER_USER: "/register_users",
       LOGIN_USER: "/login_users",
+      GET_USER_DETAILS: "/get_user_details",
+    },
+    ADMIN: {
+      COUNTRY: {
+        ADD_COUNTRY: "/add_country",
+        VIEW_COUNTRY: "/view_country",
+        EDIT_COUNTRY: "/edit_country",
+        DELETE_COUNTRY: "/delete_country",
+        ASSIGNED_COUNTRY: "/assigned_country",
+        UNASSIGNED_COUNTRY: "/unassigned_country",
+      },
+      STATE: {
+        ADD_STATE: "/add_state",
+        VIEW_STATE: "/view_state",
+        EDIT_STATE: "/edit_state",
+        DELETE_STATE: "/delete_state",
+        ASSIGNED_STATE: "/assigned_state",
+        UNASSIGNED_STATE: "/unassigned_state",
+      },
     },
   },
   ROUTER: {
     USER: "/users",
+    COUNRTY: "/country",
+    STATE: "/state",
   },
   COLLECTION: {
     USER: "users",
+    COUNRTY: "country",
+    STATE: "state",
   },
   REGEXP: {
     NAME: /^([\w]{1,})+\s+([\w\s]{1,})+$/i,
@@ -26,8 +49,13 @@ const config = {
     PASSWORD:
       /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?#&^_()+-/])([a-zA-Z0-9@$!%*?#&^_()+-/]{8,})$/,
     CONTACT_NO: /^\d{10}$/,
+    OBJECT_ID: /^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i,
   },
   SCHEMA_MESSAGE: {
+    PAGINATION: {
+      STARTING_AFTER: "starting after parameter is missing",
+      LIMIT: "limit parameter is missing",
+    },
     USER: {
       NAME: "name field can not be empty! ",
       VALID_NAME: "name should have first and last name",
@@ -37,6 +65,18 @@ const config = {
       VALID_PASSWORD: "password should be a valid password",
       CONTACT_NO: "contact no. should be 10 digit",
       USER_TYPE: "user_type field can not be empty!",
+    },
+    COUNTRY: {
+      COUNTRY_NAME: "country name should not be empty!",
+      COUNTRY_CODE: "country code should not be empty!",
+      COUNTRY_ID: "country id should not be empty!",
+      COUNTRY_ID_INVALID: "country id is invalid!",
+    },
+    STATE: {
+      STATE_NAME: "state name should not be empty!",
+      STATE_CODE: "state code should not be empty!",
+      STATE_ID: "state id should not be empty!",
+      STATE_ID_INVALID: "state id is invalid!",
     },
   },
   RESPONSE: {

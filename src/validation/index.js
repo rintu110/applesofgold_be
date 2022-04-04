@@ -1,9 +1,6 @@
 const validate = (schema) => async (req, res, next) => {
   try {
-    req.body = await schema.validate(req.body, {
-      abortEarly: true,
-      stripUnknown: true,
-    });
+    req.body = await schema.validate(req.body);
     next();
   } catch (err) {
     if (err.errors != null && err.errors.length > 0) {

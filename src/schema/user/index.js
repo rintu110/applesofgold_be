@@ -28,7 +28,6 @@ module.exports = {
       .trim()
       .required(SCHEMA_MESSAGE.USER.EMAIL)
       .matches(REGEXP.EMAIL, SCHEMA_MESSAGE.USER.VALID_EMAIL),
-    created_by: yup.string().trim(),
     password: yup
       .string()
       .trim()

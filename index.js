@@ -5,6 +5,7 @@ require("dotenv").config();
 const Database = require("./src/database/connect");
 const Index = require("./src/routes/welcome");
 const Router = require("./src/routes");
+const AdminRouter = require("./src/routes/aogproviderbe");
 const { PORT } = require("./src/config/config");
 
 const App = express();
@@ -24,3 +25,4 @@ Database.connect(() => {
 
 App.use("/", Index);
 App.use("/applesofgold/api", Router);
+App.use("/applesofgold/admin/api", AdminRouter);
