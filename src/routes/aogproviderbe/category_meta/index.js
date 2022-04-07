@@ -1,54 +1,57 @@
 const router = require("../../../app");
 const config = require("../../../config/config");
 const validate = require("../../../validation");
+const { ObjectId } = require("mongodb");
 const { ensureAuthorisedAdmin } = require("../../../auth");
 const {
-  addCountrySchema,
-  viewCountrySchema,
-  editCountrySchema,
-  deleteCountrySchema,
-  assigneUnassignedSchema,
-} = require("../../../schema/aogproviderbe/country");
+  addCategoryMetaSchema,
+  viewCategoryMetaSchema,
+  editCategoryMetaSchema,
+  deleteCategoryMetaSchema,
+} = require("../../../schema/aogproviderbe/category_meta");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
 const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
-const { ObjectId } = require("mongodb");
 const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
-const { updateMany } = require("../../../mongo-qury/updateMany");
 
 const { API, COLLECTION } = config;
 
 router.post(
-  API.ADMIN.COUNTRY.ADD_COUNTRY,
-  validate(addCountrySchema),
+  API.ADMIN.CATEGORY_META.ADD_CATEGORY_META,
+  validate(addCategoryMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_nm, code, user_id } = req.body;
+    const { cat_id, meta_keyword, meta_desc, meta_title, user_id } = req.body;
 
     const body = {
-      country_nm: country_nm,
-      code: code,
-      status: 0,
-      created_at: new Date(),
+      cat_id: new ObjectId(cat_id),
+      meta_keyword: meta_keyword,
+      meta_desc: meta_desc,
+      meta_title: meta_title,
       created_by: user_id,
+      created_at: new Date(),
       updated_at: new Date(),
     };
 
     view(
-      { country_nm: country_nm },
-      COLLECTION.COUNRTY,
+      { meta_title: meta_title },
+      COLLECTION.CATEGORY_META,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Country already exists." });
+          res.json({ status: false, message: "Category meta already exists." });
         } else {
-          insert(body, COLLECTION.COUNRTY, (status1, message1, result1) => {
-            res.json({
-              status: status1,
-              message: message1,
-              result: result1,
-            });
-          });
+          insert(
+            body,
+            COLLECTION.CATEGORY_META,
+            (status1, message1, result1) => {
+              res.json({
+                status: status1,
+                message: message1,
+                result: result1,
+              });
+            }
+          );
         }
       }
     );
@@ -56,8 +59,8 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.VIEW_COUNTRY,
-  validate(viewCountrySchema),
+  API.ADMIN.CATEGORY_META.VIEW_CATEGORY_META,
+  validate(viewCategoryMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { limit, startingAfter, searchKeyWord } = req.body;
@@ -70,7 +73,7 @@ router.post(
         {},
         startingAfter,
         limit,
-        COLLECTION.COUNRTY,
+        COLLECTION.CATEGORY_META,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -94,13 +97,19 @@ router.post(
         {
           $or: [
             {
-              country_nm: {
+              meta_keyword: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
             },
             {
-              code: {
+              meta_desc: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
+            {
+              meta_title: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
@@ -109,7 +118,7 @@ router.post(
         },
         startingAfter,
         limit,
-        COLLECTION.COUNRTY,
+        COLLECTION.CATEGORY_META,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -133,29 +142,31 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.EDIT_COUNTRY,
-  validate(editCountrySchema),
+  API.ADMIN.CATEGORY_META.EDIT_CATEGORY_META,
+  validate(editCategoryMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_nm, code, country_id } = req.body;
+    const { cat_id, meta_keyword, meta_desc, meta_title, meta_id } = req.body;
 
     const body = {
       $set: {
-        country_nm: country_nm,
-        code: code,
+        cat_id: new ObjectId(cat_id),
+        meta_keyword: meta_keyword,
+        meta_desc: meta_desc,
+        meta_title: meta_title,
         updated_at: new Date(),
       },
     };
 
     view(
-      { _id: new ObjectId(country_id) },
-      COLLECTION.COUNRTY,
+      { _id: new ObjectId(meta_id) },
+      COLLECTION.CATEGORY_META,
       (status, message, result) => {
         if (status) {
           update(
-            { _id: new ObjectId(country_id) },
+            { _id: new ObjectId(meta_id) },
             body,
-            COLLECTION.COUNRTY,
+            COLLECTION.CATEGORY_META,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -169,20 +180,20 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.DELETE_COUNTRY,
-  validate(deleteCountrySchema),
+  API.ADMIN.CATEGORY_META.DELETE_CATEGORY_META,
+  validate(deleteCategoryMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_id } = req.body;
+    const { meta_id } = req.body;
 
     view(
-      { _id: new ObjectId(country_id) },
-      COLLECTION.COUNRTY,
+      { _id: new ObjectId(meta_id) },
+      COLLECTION.CATEGORY_META,
       (status, message, result) => {
         if (status) {
           deleteOne(
-            { _id: new ObjectId(country_id) },
-            COLLECTION.COUNRTY,
+            { _id: new ObjectId(meta_id) },
+            COLLECTION.CATEGORY_META,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -192,48 +203,6 @@ router.post(
         }
       }
     );
-  }
-);
-
-router.post(
-  API.ADMIN.COUNTRY.ASSIGNED_COUNTRY,
-  validate(assigneUnassignedSchema),
-  ensureAuthorisedAdmin,
-  async (req, res) => {
-    const { country_id } = req.body;
-
-    const _id = await country_id.map((item) => new ObjectId(item));
-
-    let filter = { _id: { $in: _id } };
-
-    let body = {
-      $set: { status: 1 },
-    };
-
-    updateMany(filter, body, COLLECTION.COUNRTY, (status, message, result) => {
-      res.json({ status: status, message: message, result: result });
-    });
-  }
-);
-
-router.post(
-  API.ADMIN.COUNTRY.UNASSIGNED_COUNTRY,
-  validate(assigneUnassignedSchema),
-  ensureAuthorisedAdmin,
-  async (req, res) => {
-    const { country_id } = req.body;
-
-    const _id = await country_id.map((item) => new ObjectId(item));
-
-    let filter = { _id: { $in: _id } };
-
-    let body = {
-      $set: { status: 0 },
-    };
-
-    updateMany(filter, body, COLLECTION.COUNRTY, (status, message, result) => {
-      res.json({ status: status, message: message, result: result });
-    });
   }
 );
 

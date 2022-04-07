@@ -1,48 +1,51 @@
 const router = require("../../../app");
 const config = require("../../../config/config");
 const validate = require("../../../validation");
+const { ObjectId } = require("mongodb");
 const { ensureAuthorisedAdmin } = require("../../../auth");
 const {
-  addCountrySchema,
-  viewCountrySchema,
-  editCountrySchema,
-  deleteCountrySchema,
+  addCategorySchema,
+  viewCategorySchema,
+  editCategorySchema,
+  deleteCategorySchema,
   assigneUnassignedSchema,
-} = require("../../../schema/aogproviderbe/country");
+} = require("../../../schema/aogproviderbe/category");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
 const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
-const { ObjectId } = require("mongodb");
 const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
 const { updateMany } = require("../../../mongo-qury/updateMany");
+const { viewAll } = require("../../../mongo-qury/findAll");
 
 const { API, COLLECTION } = config;
 
 router.post(
-  API.ADMIN.COUNTRY.ADD_COUNTRY,
-  validate(addCountrySchema),
+  API.ADMIN.CATEGORY.ADD_CATEGORY,
+  validate(addCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_nm, code, user_id } = req.body;
+    const { category_nm, code, user_id, page_content, parent_id } = req.body;
 
     const body = {
-      country_nm: country_nm,
+      category_nm: category_nm,
       code: code,
       status: 0,
+      page_content: page_content,
+      parent_id: parent_id === 0 ? parent_id : new ObjectId(parent_id),
       created_at: new Date(),
       created_by: user_id,
       updated_at: new Date(),
     };
 
     view(
-      { country_nm: country_nm },
-      COLLECTION.COUNRTY,
+      { category_nm: category_nm },
+      COLLECTION.CATEGORY,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Country already exists." });
+          res.json({ status: false, message: "Category already exists." });
         } else {
-          insert(body, COLLECTION.COUNRTY, (status1, message1, result1) => {
+          insert(body, COLLECTION.CATEGORY, (status1, message1, result1) => {
             res.json({
               status: status1,
               message: message1,
@@ -56,8 +59,8 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.VIEW_COUNTRY,
-  validate(viewCountrySchema),
+  API.ADMIN.CATEGORY.VIEW_CATEGORY,
+  validate(viewCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { limit, startingAfter, searchKeyWord } = req.body;
@@ -70,7 +73,7 @@ router.post(
         {},
         startingAfter,
         limit,
-        COLLECTION.COUNRTY,
+        COLLECTION.CATEGORY,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -94,7 +97,7 @@ router.post(
         {
           $or: [
             {
-              country_nm: {
+              category_nm: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
@@ -105,11 +108,17 @@ router.post(
                 $options: "i",
               },
             },
+            {
+              page_content: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
           ],
         },
         startingAfter,
         limit,
-        COLLECTION.COUNRTY,
+        COLLECTION.CATEGORY,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -133,29 +142,32 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.EDIT_COUNTRY,
-  validate(editCountrySchema),
+  API.ADMIN.CATEGORY.EDIT_CATEGORY,
+  validate(editCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_nm, code, country_id } = req.body;
+    const { category_nm, code, parent_id, page_content, category_id } =
+      req.body;
 
     const body = {
       $set: {
-        country_nm: country_nm,
+        category_nm: category_nm,
+        parent_id: parent_id === 0 ? parent_id : new ObjectId(parent_id),
+        page_content: page_content,
         code: code,
         updated_at: new Date(),
       },
     };
 
     view(
-      { _id: new ObjectId(country_id) },
-      COLLECTION.COUNRTY,
+      { _id: new ObjectId(category_id) },
+      COLLECTION.CATEGORY,
       (status, message, result) => {
         if (status) {
           update(
-            { _id: new ObjectId(country_id) },
+            { _id: new ObjectId(category_id) },
             body,
-            COLLECTION.COUNRTY,
+            COLLECTION.CATEGORY,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -169,20 +181,20 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.DELETE_COUNTRY,
-  validate(deleteCountrySchema),
+  API.ADMIN.CATEGORY.DELETE_CATEGORY,
+  validate(deleteCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_id } = req.body;
+    const { category_id } = req.body;
 
     view(
-      { _id: new ObjectId(country_id) },
-      COLLECTION.COUNRTY,
+      { _id: new ObjectId(category_id) },
+      COLLECTION.CATEGORY,
       (status, message, result) => {
         if (status) {
           deleteOne(
-            { _id: new ObjectId(country_id) },
-            COLLECTION.COUNRTY,
+            { _id: new ObjectId(category_id) },
+            COLLECTION.CATEGORY,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -196,13 +208,13 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.COUNTRY.ASSIGNED_COUNTRY,
+  API.ADMIN.CATEGORY.ASSIGNED_CATEGORY,
   validate(assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { country_id } = req.body;
+    const { category_id } = req.body;
 
-    const _id = await country_id.map((item) => new ObjectId(item));
+    const _id = await category_id.map((item) => new ObjectId(item));
 
     let filter = { _id: { $in: _id } };
 
@@ -210,20 +222,20 @@ router.post(
       $set: { status: 1 },
     };
 
-    updateMany(filter, body, COLLECTION.COUNRTY, (status, message, result) => {
+    updateMany(filter, body, COLLECTION.CATEGORY, (status, message, result) => {
       res.json({ status: status, message: message, result: result });
     });
   }
 );
 
 router.post(
-  API.ADMIN.COUNTRY.UNASSIGNED_COUNTRY,
+  API.ADMIN.CATEGORY.UNASSIGNED_CATEGORY,
   validate(assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { country_id } = req.body;
+    const { category_id } = req.body;
 
-    const _id = await country_id.map((item) => new ObjectId(item));
+    const _id = await category_id.map((item) => new ObjectId(item));
 
     let filter = { _id: { $in: _id } };
 
@@ -231,8 +243,22 @@ router.post(
       $set: { status: 0 },
     };
 
-    updateMany(filter, body, COLLECTION.COUNRTY, (status, message, result) => {
+    updateMany(filter, body, COLLECTION.CATEGORY, (status, message, result) => {
       res.json({ status: status, message: message, result: result });
+    });
+  }
+);
+
+router.post(
+  API.ADMIN.CATEGORY.VIEW_ALL_CATEGORY,
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    viewAll({}, COLLECTION.CATEGORY, (status, message, result) => {
+      res.json({
+        status: status,
+        message: message,
+        result: result,
+      });
     });
   }
 );

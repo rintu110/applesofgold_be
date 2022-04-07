@@ -72,12 +72,21 @@ router.post(
         limit,
         COLLECTION.STATE,
         (status, message, result) => {
-          res.json({
-            status: status,
-            message: message,
-            result: result[0].result,
-            total: result[0].total[0].total,
-          });
+          if (result[0].result.length > 0) {
+            res.json({
+              status: status,
+              message: message,
+              result: result[0].result,
+              total: result[0].total[0].total,
+            });
+          } else {
+            res.json({
+              status: status,
+              message: message,
+              result: [],
+              total: 0,
+            });
+          }
         }
       );
     } else {
@@ -102,12 +111,21 @@ router.post(
         limit,
         COLLECTION.STATE,
         (status, message, result) => {
-          res.json({
-            status: status,
-            message: message,
-            result: result[0].result,
-            total: result[0].total[0].total,
-          });
+          if (result[0].result.length > 0) {
+            res.json({
+              status: status,
+              message: message,
+              result: result[0].result,
+              total: result[0].total[0].total,
+            });
+          } else {
+            res.json({
+              status: status,
+              message: message,
+              result: [],
+              total: 0,
+            });
+          }
         }
       );
     }
