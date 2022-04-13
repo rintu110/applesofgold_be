@@ -9,14 +9,6 @@ module.exports = {
     code: yup.string().trim().required(SCHEMA_MESSAGE.STATE.STATE_CODE),
   }),
 
-  viewStateSchema: yup.object({
-    startingAfter: yup
-      .number()
-      .nullable()
-      .required(SCHEMA_MESSAGE.PAGINATION.STARTING_AFTER),
-    limit: yup.number().nullable().required(SCHEMA_MESSAGE.PAGINATION.LIMIT),
-  }),
-
   editStateSchema: yup.object({
     state_nm: yup.string().trim().required(SCHEMA_MESSAGE.STATE.STATE_NAME),
     code: yup.string().trim().required(SCHEMA_MESSAGE.STATE.STATE_CODE),

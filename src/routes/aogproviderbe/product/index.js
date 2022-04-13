@@ -1,14 +1,13 @@
 const router = require("../../../app");
 const config = require("../../../config/config");
 const validate = require("../../../validation");
-const { ObjectId } = require("mongodb");
 const { ensureAuthorisedAdmin } = require("../../../auth");
 const filesvalidate = require("../../../validation/fileValidation");
 const {
-  addCategoryMetaSchema,
-  editCategoryMetaSchema,
-  deleteCategoryMetaSchema,
-} = require("../../../schema/aogproviderbe/category_meta");
+  addProductSchema,
+  editProductSchema,
+  deleteProductSchema,
+} = require("../../../schema/aogproviderbe/product");
 const universal = require("../../../schema/universal");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
@@ -21,52 +20,56 @@ const { viewAll } = require("../../../mongo-qury/findAll");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
 const csvtojson = require("csvtojson");
 const { Parser } = require("json2csv");
+const { ObjectId } = require("mongodb");
 
 const { API, COLLECTION, RESPONSE } = config;
 
 router.post(
-  API.ADMIN.CATEGORY_META.ADD_CATEGORY_META,
-  validate(addCategoryMetaSchema),
+  API.ADMIN.PRODUCT.ADD_PRODUCT,
+  validate(addProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const {
       cat_id,
-      meta_keyword,
-      meta_desc,
-      meta_title,
-      meta_content,
+      product_nm,
+      price,
+      weight,
+      prd_desc,
+      code,
+      cost,
+      taxable,
       user_id,
     } = req.body;
 
     const body = {
       cat_id: new ObjectId(cat_id),
-      meta_keyword: meta_keyword,
-      meta_desc: meta_desc,
-      meta_title: meta_title,
-      meta_content: meta_content,
+      product_nm: product_nm,
+      price: price,
+      code: code,
+      cost: cost,
+      weight: weight,
+      prd_desc: prd_desc,
+      taxable: taxable,
       created_by: user_id,
+      status: 0,
       created_at: new Date(),
       updated_at: new Date(),
     };
 
     view(
-      { meta_title: meta_title },
-      COLLECTION.CATEGORY_META,
+      { product_nm: product_nm },
+      COLLECTION.PRODUCT,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Category meta already exists." });
+          res.json({ status: false, message: "Product already exists." });
         } else {
-          insert(
-            body,
-            COLLECTION.CATEGORY_META,
-            (status1, message1, result1) => {
-              res.json({
-                status: status1,
-                message: message1,
-                result: result1,
-              });
-            }
-          );
+          insert(body, COLLECTION.PRODUCT, (status1, message1, result1) => {
+            res.json({
+              status: status1,
+              message: message1,
+              result: result1,
+            });
+          });
         }
       }
     );
@@ -74,7 +77,7 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.VIEW_CATEGORY_META,
+  API.ADMIN.PRODUCT.VIEW_PRODUCT,
   validate(universal.viewAdminSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
@@ -94,7 +97,7 @@ router.post(
         },
         startingAfter,
         limit,
-        COLLECTION.CATEGORY_META,
+        COLLECTION.PRODUCT,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -118,19 +121,37 @@ router.post(
         {
           $or: [
             {
-              meta_keyword: {
+              product_nm: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
             },
             {
-              meta_desc: {
+              price: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
             },
             {
-              meta_title: {
+              weight: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
+            {
+              prd_desc: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
+            {
+              code: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
+            {
+              cost: {
                 $regex: searchKeyWord,
                 $options: "i",
               },
@@ -145,7 +166,7 @@ router.post(
         },
         startingAfter,
         limit,
-        COLLECTION.CATEGORY_META,
+        COLLECTION.PRODUCT,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -169,39 +190,45 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.EDIT_CATEGORY_META,
-  validate(editCategoryMetaSchema),
+  API.ADMIN.PRODUCT.EDIT_PRODUCT,
+  validate(editProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const {
       cat_id,
-      meta_keyword,
-      meta_desc,
-      meta_title,
-      meta_content,
-      meta_id,
+      product_nm,
+      price,
+      weight,
+      prd_desc,
+      code,
+      cost,
+      taxable,
+      product_id,
     } = req.body;
 
     const body = {
       $set: {
         cat_id: new ObjectId(cat_id),
-        meta_keyword: meta_keyword,
-        meta_desc: meta_desc,
-        meta_title: meta_title,
-        meta_content: meta_content,
+        product_nm: product_nm,
+        price: price,
+        code: code,
+        cost: cost,
+        weight: weight,
+        prd_desc: prd_desc,
+        taxable: taxable,
         updated_at: new Date(),
       },
     };
 
     view(
-      { _id: new ObjectId(meta_id) },
-      COLLECTION.CATEGORY_META,
+      { _id: new ObjectId(product_id) },
+      COLLECTION.PRODUCT,
       (status, message, result) => {
         if (status) {
           update(
-            { _id: new ObjectId(meta_id) },
+            { _id: new ObjectId(product_id) },
             body,
-            COLLECTION.CATEGORY_META,
+            COLLECTION.PRODUCT,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -215,20 +242,20 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.DELETE_CATEGORY_META,
-  validate(deleteCategoryMetaSchema),
+  API.ADMIN.PRODUCT.DELETE_PRODUCT,
+  validate(deleteProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { meta_id } = req.body;
+    const { product_id } = req.body;
 
     view(
-      { _id: new ObjectId(meta_id) },
-      COLLECTION.CATEGORY_META,
+      { _id: new ObjectId(product_id) },
+      COLLECTION.PRODUCT,
       (status, message, result) => {
         if (status) {
           deleteOne(
-            { _id: new ObjectId(meta_id) },
-            COLLECTION.CATEGORY_META,
+            { _id: new ObjectId(product_id) },
+            COLLECTION.PRODUCT,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -242,7 +269,63 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.ADD_META_FROM_CSV,
+  API.ADMIN.PRODUCT.ASSIGNED_PRODUCT,
+  validate(universal.assigneUnassignedSchema),
+  ensureAuthorisedAdmin,
+  async (req, res) => {
+    const { _id } = req.body;
+
+    const product_id = await _id.map((item) => new ObjectId(item));
+
+    let filter = { _id: { $in: product_id } };
+
+    let body = {
+      $set: { status: 1 },
+    };
+
+    updateMany(filter, body, COLLECTION.PRODUCT, (status, message, result) => {
+      res.json({ status: status, message: message, result: result });
+    });
+  }
+);
+
+router.post(
+  API.ADMIN.PRODUCT.UNASSIGNED_PRODUCT,
+  validate(universal.assigneUnassignedSchema),
+  ensureAuthorisedAdmin,
+  async (req, res) => {
+    const { _id } = req.body;
+
+    const product_id = await _id.map((item) => new ObjectId(item));
+
+    let filter = { _id: { $in: product_id } };
+
+    let body = {
+      $set: { status: 0 },
+    };
+
+    updateMany(filter, body, COLLECTION.PRODUCT, (status, message, result) => {
+      res.json({ status: status, message: message, result: result });
+    });
+  }
+);
+
+router.post(
+  API.ADMIN.PRODUCT.VIEW_ALL_PRODUCT,
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    viewAll({}, COLLECTION.PRODUCT, (status, message, result) => {
+      res.json({
+        status: status,
+        message: message,
+        result: result,
+      });
+    });
+  }
+);
+
+router.post(
+  API.ADMIN.PRODUCT.ADD_PRODUCT_FROM_CSV,
   filesvalidate(universal.importAndExportCsv),
   ensureAuthorisedAdmin,
   async (req, res) => {
@@ -255,36 +338,48 @@ router.post(
         if (csvrow.length > 0) {
           if (
             csvrow[0].hasOwnProperty("category_nm") &&
-            csvrow[0].hasOwnProperty("meta_desc") &&
-            csvrow[0].hasOwnProperty("meta_title") &&
-            csvrow[0].hasOwnProperty("meta_keyword") &&
-            csvrow[0].hasOwnProperty("meta_content")
+            csvrow[0].hasOwnProperty("product_nm") &&
+            csvrow[0].hasOwnProperty("price") &&
+            csvrow[0].hasOwnProperty("weight") &&
+            csvrow[0].hasOwnProperty("prd_desc") &&
+            csvrow[0].hasOwnProperty("code") &&
+            csvrow[0].hasOwnProperty("cost") &&
+            csvrow[0].hasOwnProperty("taxable")
           ) {
             const valid = csvrow.find(
               (item) =>
-                item.meta_title === "" ||
-                item.meta_keyword === "" ||
-                item.meta_desc === "" ||
-                item.meta_content === ""
+                item.product_nm === "" ||
+                item.price === "" ||
+                item.weight === "" ||
+                item.prd_desc === "" ||
+                item.code === "" ||
+                item.cost === "" ||
+                item.taxable === ""
             );
 
             const validIndex =
               csvrow.findIndex(
                 (item) =>
-                  item.meta_title === "" ||
-                  item.meta_keyword === "" ||
-                  item.meta_desc === "" ||
-                  item.meta_content === ""
+                  item.product_nm === "" ||
+                  item.price === "" ||
+                  item.weight === "" ||
+                  item.prd_desc === "" ||
+                  item.code === "" ||
+                  item.cost === "" ||
+                  item.taxable === ""
               ) + 2;
 
             if (
               valid !== undefined &&
               valid !== null &&
               valid !== "" &&
-              (valid.meta_title === "" ||
-                valid.meta_keyword === "" ||
-                valid.meta_desc === "" ||
-                valid.meta_content === "")
+              (valid.product_nm === "" ||
+                valid.price === "" ||
+                valid.weight === "" ||
+                valid.prd_desc === "" ||
+                valid.code === "" ||
+                valid.cost === "" ||
+                valid.taxable === "")
             ) {
               res.json({
                 status: false,
@@ -294,10 +389,10 @@ router.post(
             } else {
               let row = [];
               let filter = {
-                meta_title: {
+                product_nm: {
                   $not: {
                     $in: csvrow.map((item) => ({
-                      meta_title: item.meta_title,
+                      product_nm: item.product_nm,
                     })),
                   },
                 },
@@ -305,13 +400,13 @@ router.post(
 
               viewAll(
                 filter,
-                COLLECTION.CATEGORY_META,
+                COLLECTION.PRODUCT,
                 async (status, message, result) => {
                   if (status && result.length > 0) {
                     row = csvrow.filter(
                       (item) =>
                         !result.find(
-                          (item2) => item.meta_title === item2.meta_title
+                          (item2) => item.product_nm === item2.product_nm
                         )
                     );
 
@@ -349,34 +444,42 @@ router.post(
                                 ) !== undefined
                               ) {
                                 return {
-                                  meta_title: item.meta_title,
-                                  meta_keyword: item.meta_keyword,
-                                  meta_desc: item.meta_desc,
-                                  meta_content: item.meta_content,
+                                  product_nm: item.product_nm,
+                                  price: item.price,
+                                  code: item.code,
+                                  cost: item.cost,
+                                  weight: item.weight,
+                                  prd_desc: item.prd_desc,
+                                  taxable: item.taxable,
                                   cat_id: result.find(
                                     (item2) =>
                                       item.category_nm === item2.category_nm
                                   )._id,
-                                  created_at: new Date(),
                                   created_by: user_id,
+                                  status: 0,
+                                  created_at: new Date(),
                                   updated_at: new Date(),
                                 };
                               } else {
                                 return {
-                                  meta_title: item.meta_title,
-                                  meta_keyword: item.meta_keyword,
-                                  meta_desc: item.meta_desc,
-                                  meta_content: item.meta_content,
+                                  product_nm: item.product_nm,
+                                  price: item.price,
+                                  code: item.code,
+                                  cost: item.cost,
+                                  weight: item.weight,
+                                  prd_desc: item.prd_desc,
+                                  taxable: item.taxable,
                                   cat_id: 0,
-                                  created_at: new Date(),
                                   created_by: user_id,
+                                  status: 0,
+                                  created_at: new Date(),
                                   updated_at: new Date(),
                                 };
                               }
                             });
 
                             await insertManyBulk(
-                              COLLECTION.CATEGORY_META,
+                              COLLECTION.PRODUCT,
                               row,
                               (status, message, result) => {
                                 res.json({
@@ -388,18 +491,22 @@ router.post(
                             );
                           } else {
                             let body = row.map((item) => ({
-                              meta_title: item.meta_title,
-                              meta_keyword: item.meta_keyword,
-                              meta_desc: item.meta_desc,
-                              meta_content: item.meta_content,
+                              product_nm: item.product_nm,
+                              price: item.price,
+                              code: item.code,
+                              cost: item.cost,
+                              weight: item.weight,
+                              prd_desc: item.prd_desc,
+                              taxable: item.taxable,
                               cat_id: 0,
-                              created_at: new Date(),
                               created_by: user_id,
+                              status: 0,
+                              created_at: new Date(),
                               updated_at: new Date(),
                             }));
 
                             await insertManyBulk(
-                              COLLECTION.CATEGORY_META,
+                              COLLECTION.PRODUCT,
                               body,
                               (status, message, result) => {
                                 res.json({
@@ -448,27 +555,35 @@ router.post(
                               ) !== undefined
                             ) {
                               return {
-                                meta_title: item.meta_title,
-                                meta_keyword: item.meta_keyword,
-                                meta_desc: item.meta_desc,
-                                meta_content: item.meta_content,
+                                product_nm: item.product_nm,
+                                price: item.price,
+                                code: item.code,
+                                cost: item.cost,
+                                weight: item.weight,
+                                prd_desc: item.prd_desc,
+                                taxable: item.taxable,
                                 cat_id: result.find(
                                   (item2) =>
                                     item.category_nm === item2.category_nm
                                 )._id,
-                                created_at: new Date(),
                                 created_by: user_id,
+                                status: 0,
+                                created_at: new Date(),
                                 updated_at: new Date(),
                               };
                             } else {
                               return {
-                                meta_title: item.meta_title,
-                                meta_keyword: item.meta_keyword,
-                                meta_desc: item.meta_desc,
-                                meta_content: item.meta_content,
+                                product_nm: item.product_nm,
+                                price: item.price,
+                                code: item.code,
+                                cost: item.cost,
+                                weight: item.weight,
+                                prd_desc: item.prd_desc,
+                                taxable: item.taxable,
                                 cat_id: 0,
-                                created_at: new Date(),
                                 created_by: user_id,
+                                status: 0,
+                                created_at: new Date(),
                                 updated_at: new Date(),
                               };
                             }
@@ -487,18 +602,22 @@ router.post(
                           );
                         } else {
                           let body = csvrow.map((item) => ({
-                            meta_title: item.meta_title,
-                            meta_keyword: item.meta_keyword,
-                            meta_desc: item.meta_desc,
-                            meta_content: item.meta_content,
+                            product_nm: item.product_nm,
+                            price: item.price,
+                            code: item.code,
+                            cost: item.cost,
+                            weight: item.weight,
+                            prd_desc: item.prd_desc,
+                            taxable: item.taxable,
                             cat_id: 0,
-                            created_at: new Date(),
                             created_by: user_id,
+                            status: 0,
+                            created_at: new Date(),
                             updated_at: new Date(),
                           }));
 
                           await insertManyBulk(
-                            COLLECTION.CATEGORY_META,
+                            COLLECTION.PRODUCT,
                             body,
                             (status, message, result) => {
                               res.json({
@@ -530,10 +649,10 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.SEND_META_TO_CSV,
+  API.ADMIN.PRODUCT.SEND_PRODUCT_TO_CSV,
   ensureAuthorisedAdmin,
   async (req, res) => {
-    viewAll({}, COLLECTION.CATEGORY_META, async (status, message, result1) => {
+    viewAll({}, COLLECTION.PRODUCT, async (status, message, result1) => {
       if (status && result1.length > 0) {
         let row = [];
 
@@ -564,20 +683,26 @@ router.post(
                   ) !== undefined
                 ) {
                   return {
-                    meta_title: item.meta_title,
-                    meta_keyword: item.meta_keyword,
-                    meta_desc: item.meta_desc,
-                    meta_content: item.meta_content,
+                    product_nm: item.product_nm,
+                    price: item.price,
+                    code: item.code,
+                    cost: item.cost,
+                    weight: item.weight,
+                    prd_desc: item.prd_desc,
+                    taxable: item.taxable,
                     category_nm: result.find(
                       (item2) => item.cat_id.toString() === item2._id.toString()
                     ).category_nm,
                   };
                 } else {
                   return {
-                    meta_title: item.meta_title,
-                    meta_keyword: item.meta_keyword,
-                    meta_desc: item.meta_desc,
-                    meta_content: item.meta_content,
+                    product_nm: item.product_nm,
+                    price: item.price,
+                    code: item.code,
+                    cost: item.cost,
+                    weight: item.weight,
+                    prd_desc: item.prd_desc,
+                    taxable: item.taxable,
                     category_nm: "",
                   };
                 }
@@ -586,30 +711,39 @@ router.post(
               const json2csv = new Parser({
                 fields: [
                   "category_nm",
-                  "meta_desc",
-                  "meta_title",
-                  "meta_keyword",
-                  "meta_content",
+                  "product_nm",
+                  "code",
+                  "price",
+                  "cost",
+                  "weight",
+                  "taxable",
+                  "prd_desc",
                 ],
               });
               const csv = json2csv.parse(row);
               res.send(csv);
             } else {
               row = result1.map((item) => ({
-                meta_title: item.meta_title,
-                meta_keyword: item.meta_keyword,
-                meta_desc: item.meta_desc,
-                meta_content: item.meta_content,
+                product_nm: item.product_nm,
+                price: item.price,
+                code: item.code,
+                cost: item.cost,
+                weight: item.weight,
+                prd_desc: item.prd_desc,
+                taxable: item.taxable,
                 category_nm: "",
               }));
 
               const json2csv = new Parser({
                 fields: [
                   "category_nm",
-                  "meta_desc",
-                  "meta_title",
-                  "meta_keyword",
-                  "meta_content",
+                  "product_nm",
+                  "code",
+                  "price",
+                  "cost",
+                  "weight",
+                  "taxable",
+                  "prd_desc",
                 ],
               });
               const csv = json2csv.parse(row);

@@ -12,14 +12,6 @@ module.exports = {
     code: yup.string().trim().required(SCHEMA_MESSAGE.COUNTRY.COUNTRY_CODE),
   }),
 
-  viewCountrySchema: yup.object({
-    startingAfter: yup
-      .number()
-      .nullable()
-      .required(SCHEMA_MESSAGE.PAGINATION.STARTING_AFTER),
-    limit: yup.number().nullable().required(SCHEMA_MESSAGE.PAGINATION.LIMIT),
-  }),
-
   editCountrySchema: yup.object({
     country_nm: yup
       .string()

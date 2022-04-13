@@ -16,14 +16,6 @@ module.exports = {
       .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_PAGE_CONTENT),
   }),
 
-  viewCategorySchema: yup.object({
-    startingAfter: yup
-      .number()
-      .nullable()
-      .required(SCHEMA_MESSAGE.PAGINATION.STARTING_AFTER),
-    limit: yup.number().nullable().required(SCHEMA_MESSAGE.PAGINATION.LIMIT),
-  }),
-
   editCategorySchema: yup.object({
     category_nm: yup
       .string()

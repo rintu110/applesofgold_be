@@ -22,14 +22,10 @@ module.exports = {
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.CATEGORY_META.META_TITLE),
-  }),
-
-  viewCategoryMetaSchema: yup.object({
-    startingAfter: yup
-      .number()
-      .nullable()
-      .required(SCHEMA_MESSAGE.PAGINATION.STARTING_AFTER),
-    limit: yup.number().nullable().required(SCHEMA_MESSAGE.PAGINATION.LIMIT),
+    meta_content: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.CATEGORY_META.META_CONTENT),
   }),
 
   editCategoryMetaSchema: yup.object({
@@ -55,6 +51,10 @@ module.exports = {
       .trim()
       .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.CATEGORY_META.META_ID)
       .required(SCHEMA_MESSAGE.CATEGORY_META.META_ID),
+    meta_content: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.CATEGORY_META.META_CONTENT),
   }),
 
   deleteCategoryMetaSchema: yup.object({

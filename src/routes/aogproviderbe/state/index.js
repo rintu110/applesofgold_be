@@ -4,11 +4,11 @@ const validate = require("../../../validation");
 const { ensureAuthorisedAdmin } = require("../../../auth");
 const {
   addStateSchema,
-  viewStateSchema,
   editStateSchema,
   deleteStateSchema,
   assigneUnassignedSchema,
 } = require("../../../schema/aogproviderbe/state");
+const universal = require("../../../schema/universal");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
 const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
@@ -56,7 +56,7 @@ router.post(
 
 router.post(
   API.ADMIN.STATE.VIEW_STATE,
-  validate(viewStateSchema),
+  validate(universal.viewAdminSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { limit, startingAfter, searchKeyWord } = req.body;
