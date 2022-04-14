@@ -18,6 +18,7 @@ const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
 const { viewAll } = require("../../../mongo-qury/findAll");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
+const { updateMany } = require("../../../mongo-qury/updateMany");
 const csvtojson = require("csvtojson");
 const { Parser } = require("json2csv");
 const { ObjectId } = require("mongodb");
