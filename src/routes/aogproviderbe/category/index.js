@@ -17,7 +17,6 @@ const {
 } = require("../../../mongo-qury/aggregateFindAllinPagination");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
-const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
 const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
 const { updateMany } = require("../../../mongo-qury/updateMany");

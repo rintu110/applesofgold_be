@@ -21,6 +21,8 @@ const config = {
         DELETE_COUNTRY: "/delete_country",
         ASSIGNED_COUNTRY: "/assigned_country",
         UNASSIGNED_COUNTRY: "/unassigned_country",
+        ADD_COUNTRY_FROM_CSV: "/add_country_from_csv",
+        SEND_COUNTRY_TO_CSV: "/export_country_to_csv",
       },
       STATE: {
         ADD_STATE: "/add_state",
@@ -29,6 +31,8 @@ const config = {
         DELETE_STATE: "/delete_state",
         ASSIGNED_STATE: "/assigned_state",
         UNASSIGNED_STATE: "/unassigned_state",
+        ADD_STATE_FROM_CSV: "/add_state_from_csv",
+        SEND_STATE_TO_CSV: "/export_state_to_csv",
       },
       CATEGORY: {
         ADD_CATEGORY: "/add_category",
