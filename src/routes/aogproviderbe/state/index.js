@@ -283,11 +283,7 @@ router.post(
               let row = [];
               let filter = {
                 state_nm: {
-                  $not: {
-                    $in: csvrow.map((item) => ({
-                      state_nm: item.state_nm,
-                    })),
-                  },
+                  $in: csvrow.map((item) => item.state_nm),
                 },
               };
 

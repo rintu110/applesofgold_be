@@ -76,15 +76,26 @@ router.post(
       searchKeyWord === ""
     ) {
       viewInPaginationLookUp(
-        {},
-        {
-          from: COLLECTION.CATEGORY,
-          localField: "parent_id",
-          foreignField: "_id",
-          as: "parent",
-        },
-        startingAfter,
-        limit,
+        [
+          { $sort: { _id: -1 } },
+          {
+            $lookup: {
+              from: COLLECTION.CATEGORY,
+              localField: "parent_id",
+              foreignField: "_id",
+              as: "parent",
+            },
+          },
+          {
+            $facet: {
+              result: [
+                { $skip: parseInt(startingAfter) },
+                { $limit: parseInt(limit) },
+              ],
+              total: [{ $count: "total" }],
+            },
+          },
+        ],
         COLLECTION.CATEGORY,
         (status, message, result) => {
           if (result[0].result.length > 0) {
@@ -106,36 +117,50 @@ router.post(
       );
     } else {
       viewInPaginationLookUp(
-        {
-          $or: [
-            {
-              category_nm: {
-                $regex: searchKeyWord,
-                $options: "i",
-              },
+        [
+          {
+            $match: {
+              $or: [
+                {
+                  category_nm: {
+                    $regex: searchKeyWord,
+                    $options: "i",
+                  },
+                },
+                {
+                  code: {
+                    $regex: searchKeyWord,
+                    $options: "i",
+                  },
+                },
+                {
+                  page_content: {
+                    $regex: searchKeyWord,
+                    $options: "i",
+                  },
+                },
+              ],
             },
-            {
-              code: {
-                $regex: searchKeyWord,
-                $options: "i",
-              },
+          },
+          { $sort: { _id: -1 } },
+          {
+            $lookup: {
+              from: COLLECTION.CATEGORY,
+              localField: "parent_id",
+              foreignField: "_id",
+              as: "parent",
             },
-            {
-              page_content: {
-                $regex: searchKeyWord,
-                $options: "i",
-              },
+          },
+          {
+            $facet: {
+              result: [
+                { $skip: parseInt(startingAfter) },
+                { $limit: parseInt(limit) },
+              ],
+              total: [{ $count: "total" }],
             },
-          ],
-        },
-        {
-          from: COLLECTION.CATEGORY,
-          localField: "parent_id",
-          foreignField: "_id",
-          as: "parent",
-        },
-        startingAfter,
-        limit,
+          },
+        ],
         COLLECTION.CATEGORY,
         (status, message, result) => {
           if (result[0].result.length > 0) {
@@ -329,11 +354,7 @@ router.post(
               let row = [];
               let filter = {
                 category_nm: {
-                  $not: {
-                    $in: csvrow.map((item) => ({
-                      category_nm: item.category_nm,
-                    })),
-                  },
+                  $in: csvrow.map((item) => item.category_nm),
                 },
               };
 

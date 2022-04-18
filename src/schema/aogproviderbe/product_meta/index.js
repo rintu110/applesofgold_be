@@ -4,40 +4,32 @@ const config = require("../../../config/config");
 const { SCHEMA_MESSAGE, REGEXP } = config;
 
 module.exports = {
-  addCategoryMetaSchema: yup.object({
-    cat_id: yup
+  addProductMetaSchema: yup.object({
+    prd_id: yup
       .string()
       .trim()
       .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE._ID.INVALID)
-      .required(SCHEMA_MESSAGE.CATEGORY_META.CATEGORY_ID),
+      .required(SCHEMA_MESSAGE.PRODUCT_META.PRODUCT_ID),
     meta_keyword: yup
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.META.META_KEYWORD),
     meta_desc: yup.string().trim().required(SCHEMA_MESSAGE.META.META_DESC),
     meta_title: yup.string().trim().required(SCHEMA_MESSAGE.META.META_TITLE),
-    meta_content: yup
-      .string()
-      .trim()
-      .required(SCHEMA_MESSAGE.META.META_CONTENT),
   }),
 
-  editCategoryMetaSchema: yup.object({
-    cat_id: yup
+  editProductMetaSchema: yup.object({
+    prd_id: yup
       .string()
       .trim()
       .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE._ID.INVALID)
-      .required(SCHEMA_MESSAGE.CATEGORY_META.CATEGORY_ID),
+      .required(SCHEMA_MESSAGE.PRODUCT_META.PRODUCT_ID),
     meta_keyword: yup
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.META.META_KEYWORD),
     meta_desc: yup.string().trim().required(SCHEMA_MESSAGE.META.META_DESC),
     meta_title: yup.string().trim().required(SCHEMA_MESSAGE.META.META_TITLE),
-    meta_content: yup
-      .string()
-      .trim()
-      .required(SCHEMA_MESSAGE.META.META_CONTENT),
     meta_id: yup
       .string()
       .trim()
@@ -45,7 +37,7 @@ module.exports = {
       .required(SCHEMA_MESSAGE.META.META_ID),
   }),
 
-  deleteCategoryMetaSchema: yup.object({
+  deleteProductMetaSchema: yup.object({
     meta_id: yup
       .string()
       .trim()

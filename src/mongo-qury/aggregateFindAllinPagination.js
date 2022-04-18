@@ -6,30 +6,10 @@ const {
 } = config;
 
 module.exports = {
-  viewInPaginationLookUp: async (
-    filter,
-    lookup,
-    startingAfter,
-    limit,
-    collection,
-    callBack
-  ) => {
+  viewInPaginationLookUp: async (filter, collection, callBack) => {
     server
       .collection(collection)
-      .aggregate([
-        {
-          $facet: {
-            result: [
-              { $match: filter },
-              { $lookup: lookup },
-              { $sort: { _id: -1 } },
-              { $skip: parseInt(startingAfter) },
-              { $limit: parseInt(limit) },
-            ],
-            total: [{ $count: "total" }],
-          },
-        },
-      ])
+      .aggregate(filter)
       .toArray()
       .then((doc) => {
         if (doc) {

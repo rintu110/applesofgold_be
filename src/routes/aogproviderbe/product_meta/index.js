@@ -1,14 +1,9 @@
 const router = require("../../../app");
 const config = require("../../../config/config");
 const validate = require("../../../validation");
-const { ObjectId } = require("mongodb");
 const { ensureAuthorisedAdmin } = require("../../../auth");
 const filesvalidate = require("../../../validation/fileValidation");
-const {
-  addCategoryMetaSchema,
-  editCategoryMetaSchema,
-  deleteCategoryMetaSchema,
-} = require("../../../schema/aogproviderbe/category_meta");
+const productMeta = require("../../../schema/aogproviderbe/product_meta");
 const universal = require("../../../schema/universal");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
@@ -19,35 +14,25 @@ const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
 const { viewAll } = require("../../../mongo-qury/findAll");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
-const {
-  findCategory,
-  findAllCategory,
-} = require("../../../modules/csv_modules");
+const { findProduct, findAllProduct } = require("../../../modules/csv_modules");
 const csvtojson = require("csvtojson");
 const { Parser } = require("json2csv");
+const { ObjectId } = require("mongodb");
 
 const { API, COLLECTION, RESPONSE } = config;
 
 router.post(
-  API.ADMIN.CATEGORY_META.ADD_CATEGORY_META,
-  validate(addCategoryMetaSchema),
+  API.ADMIN.PRODUCT_META.ADD_PRODUCT_META,
+  validate(productMeta.addProductMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const {
-      cat_id,
-      meta_keyword,
-      meta_desc,
-      meta_title,
-      meta_content,
-      user_id,
-    } = req.body;
+    const { prd_id, meta_keyword, meta_desc, meta_title, user_id } = req.body;
 
     const body = {
-      cat_id: new ObjectId(cat_id),
+      prd_id: new ObjectId(prd_id),
       meta_keyword: meta_keyword,
       meta_desc: meta_desc,
       meta_title: meta_title,
-      meta_content: meta_content,
       created_by: user_id,
       created_at: new Date(),
       updated_at: new Date(),
@@ -55,14 +40,17 @@ router.post(
 
     view(
       { meta_title: meta_title },
-      COLLECTION.CATEGORY_META,
+      COLLECTION.PRODUCT_META,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Category meta already exists." });
+          res.json({
+            status: false,
+            message: RESPONSE.DATA,
+          });
         } else {
           insert(
             body,
-            COLLECTION.CATEGORY_META,
+            COLLECTION.PRODUCT_META,
             (status1, message1, result1) => {
               res.json({
                 status: status1,
@@ -78,7 +66,7 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.VIEW_CATEGORY_META,
+  API.ADMIN.PRODUCT_META.VIEW_PRODUCT_META,
   validate(universal.viewAdminSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
@@ -93,10 +81,10 @@ router.post(
           { $sort: { _id: -1 } },
           {
             $lookup: {
-              from: COLLECTION.CATEGORY,
-              localField: "cat_id",
+              from: COLLECTION.PRODUCT,
+              localField: "prd_id",
               foreignField: "_id",
-              as: "category",
+              as: "product",
             },
           },
           {
@@ -109,7 +97,7 @@ router.post(
             },
           },
         ],
-        COLLECTION.CATEGORY_META,
+        COLLECTION.PRODUCT_META,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -158,10 +146,10 @@ router.post(
           { $sort: { _id: -1 } },
           {
             $lookup: {
-              from: COLLECTION.CATEGORY,
-              localField: "cat_id",
+              from: COLLECTION.PRODUCT,
+              localField: "prd_id",
               foreignField: "_id",
-              as: "category",
+              as: "product",
             },
           },
           {
@@ -174,7 +162,7 @@ router.post(
             },
           },
         ],
-        COLLECTION.CATEGORY_META,
+        COLLECTION.PRODUCT_META,
         (status, message, result) => {
           if (result[0].result.length > 0) {
             res.json({
@@ -198,39 +186,31 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.EDIT_CATEGORY_META,
-  validate(editCategoryMetaSchema),
+  API.ADMIN.PRODUCT_META.EDIT_PRODUCT_META,
+  validate(productMeta.editProductMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const {
-      cat_id,
-      meta_keyword,
-      meta_desc,
-      meta_title,
-      meta_content,
-      meta_id,
-    } = req.body;
+    const { prd_id, meta_keyword, meta_desc, meta_title, meta_id } = req.body;
 
     const body = {
       $set: {
-        cat_id: new ObjectId(cat_id),
+        prd_id: new ObjectId(prd_id),
         meta_keyword: meta_keyword,
         meta_desc: meta_desc,
         meta_title: meta_title,
-        meta_content: meta_content,
         updated_at: new Date(),
       },
     };
 
     view(
       { _id: new ObjectId(meta_id) },
-      COLLECTION.CATEGORY_META,
+      COLLECTION.PRODUCT_META,
       (status, message, result) => {
         if (status) {
           update(
             { _id: new ObjectId(meta_id) },
             body,
-            COLLECTION.CATEGORY_META,
+            COLLECTION.PRODUCT_META,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -244,20 +224,20 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.DELETE_CATEGORY_META,
-  validate(deleteCategoryMetaSchema),
+  API.ADMIN.PRODUCT_META.DELETE_PRODUCT_META,
+  validate(productMeta.deleteProductMetaSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { meta_id } = req.body;
 
     view(
       { _id: new ObjectId(meta_id) },
-      COLLECTION.CATEGORY_META,
+      COLLECTION.PRODUCT_META,
       (status, message, result) => {
         if (status) {
           deleteOne(
             { _id: new ObjectId(meta_id) },
-            COLLECTION.CATEGORY_META,
+            COLLECTION.PRODUCT_META,
             (status1, message1, result1) => {
               res.json({ status: status1, message: message1, result: result1 });
             }
@@ -271,7 +251,7 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.ADD_META_FROM_CSV,
+  API.ADMIN.PRODUCT_META.ADD_PRODUCT_META_FROM_CSV,
   filesvalidate(universal.importAndExportCsv),
   ensureAuthorisedAdmin,
   async (req, res) => {
@@ -283,18 +263,16 @@ router.post(
       .then((csvrow) => {
         if (csvrow.length > 0) {
           if (
-            csvrow[0].hasOwnProperty("category_nm") &&
+            csvrow[0].hasOwnProperty("product_nm") &&
             csvrow[0].hasOwnProperty("meta_desc") &&
             csvrow[0].hasOwnProperty("meta_title") &&
-            csvrow[0].hasOwnProperty("meta_keyword") &&
-            csvrow[0].hasOwnProperty("meta_content")
+            csvrow[0].hasOwnProperty("meta_keyword")
           ) {
             const valid = csvrow.find(
               (item) =>
                 item.meta_title === "" ||
                 item.meta_keyword === "" ||
-                item.meta_desc === "" ||
-                item.meta_content === ""
+                item.meta_desc === ""
             );
 
             const validIndex =
@@ -302,8 +280,7 @@ router.post(
                 (item) =>
                   item.meta_title === "" ||
                   item.meta_keyword === "" ||
-                  item.meta_desc === "" ||
-                  item.meta_content === ""
+                  item.meta_desc === ""
               ) + 2;
 
             if (
@@ -312,8 +289,7 @@ router.post(
               valid !== "" &&
               (valid.meta_title === "" ||
                 valid.meta_keyword === "" ||
-                valid.meta_desc === "" ||
-                valid.meta_content === "")
+                valid.meta_desc === "")
             ) {
               res.json({
                 status: false,
@@ -321,6 +297,8 @@ router.post(
                 result: [],
               });
             } else {
+              let row = [];
+
               let filter = {
                 meta_title: {
                   $in: csvrow.map((item) => item.meta_title),
@@ -329,10 +307,9 @@ router.post(
 
               viewAll(
                 filter,
-                COLLECTION.CATEGORY_META,
+                COLLECTION.PRODUCT_META,
                 async (status, message, result) => {
                   if (status && result.length > 0) {
-                    let row = [];
                     row = csvrow.filter(
                       (item) =>
                         !result.find(
@@ -347,12 +324,12 @@ router.post(
                       row.length > 0
                     ) {
                       let filter = {
-                        category_nm: {
-                          $in: row.map((item) => item.category_nm),
+                        product_nm: {
+                          $in: row.map((item) => item.product_nm),
                         },
                       };
 
-                      findCategory(COLLECTION.CATEGORY, filter, row, (rows) => {
+                      findProduct(COLLECTION.PRODUCT, filter, row, (rows) => {
                         insetEverything(rows);
                       });
                     } else {
@@ -364,48 +341,40 @@ router.post(
                     }
                   } else {
                     let filter = {
-                      category_nm: {
-                        $in: csvrow.map((item) => item.category_nm),
+                      product_nm: {
+                        $in: csvrow.map((item) => item.product_nm),
                       },
                     };
 
-                    findCategory(
-                      COLLECTION.CATEGORY,
-                      filter,
-                      csvrow,
-                      (rows) => {
-                        insetEverything(rows);
-                      }
-                    );
+                    findProduct(COLLECTION.PRODUCT, filter, csvrow, (rows) => {
+                      insetEverything(rows);
+                    });
                   }
                 }
               );
 
-              async function insetEverything(row) {
-                if (row !== undefined && row !== null && row.length) {
-                  let body = row.map((item) => ({
-                    meta_title: item.meta_title,
-                    meta_keyword: item.meta_keyword,
-                    meta_desc: item.meta_desc,
-                    meta_content: item.meta_content,
-                    cat_id: item.cat_id,
-                    created_at: new Date(),
-                    created_by: user_id,
-                    updated_at: new Date(),
-                  }));
+              async function insetEverything(rows) {
+                let body = rows.map((item) => ({
+                  meta_title: item.meta_title,
+                  meta_keyword: item.meta_keyword,
+                  meta_desc: item.meta_desc,
+                  prd_id: item.prd_id,
+                  created_at: new Date(),
+                  created_by: user_id,
+                  updated_at: new Date(),
+                }));
 
-                  await insertManyBulk(
-                    COLLECTION.CATEGORY_META,
-                    body,
-                    (status, message, result) => {
-                      res.json({
-                        status: status,
-                        message: message,
-                        result: result,
-                      });
-                    }
-                  );
-                }
+                await insertManyBulk(
+                  COLLECTION.PRODUCT_META,
+                  body,
+                  (status, message, result) => {
+                    res.json({
+                      status: status,
+                      message: message,
+                      result: result,
+                    });
+                  }
+                );
               }
             }
           } else {
@@ -423,27 +392,21 @@ router.post(
 );
 
 router.post(
-  API.ADMIN.CATEGORY_META.SEND_META_TO_CSV,
+  API.ADMIN.PRODUCT_META.SEND_PRODUCT_META_TO_CSV,
   ensureAuthorisedAdmin,
   async (req, res) => {
-    viewAll({}, COLLECTION.CATEGORY_META, async (status, message, result) => {
+    viewAll({}, COLLECTION.PRODUCT_META, async (status, message, result) => {
       if (status && result.length > 0) {
         let filter = {
           _id: {
-            $in: result.map((item) => new ObjectId(item.cat_id)),
+            $in: result.map((item) => new ObjectId(item.prd_id)),
           },
         };
 
-        findAllCategory(COLLECTION.CATEGORY, filter, result, (rows) => {
+        findAllProduct(COLLECTION.PRODUCT, filter, result, (rows) => {
           if (rows !== undefined && rows !== null && rows.length) {
             const json2csv = new Parser({
-              fields: [
-                "category_nm",
-                "meta_desc",
-                "meta_title",
-                "meta_keyword",
-                "meta_content",
-              ],
+              fields: ["product_nm", "meta_desc", "meta_title", "meta_keyword"],
             });
             const csv = json2csv.parse(rows);
             res.send(csv);

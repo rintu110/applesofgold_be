@@ -64,6 +64,24 @@ const config = {
         ADD_PRODUCT_FROM_CSV: "/add_product_from_csv",
         SEND_PRODUCT_TO_CSV: "/export_product_to_csv",
       },
+      PRODUCT_META: {
+        ADD_PRODUCT_META: "/add_product_meta",
+        EDIT_PRODUCT_META: "/edit_product_meta",
+        DELETE_PRODUCT_META: "/delete_product_meta",
+        VIEW_PRODUCT_META: "/view_product_meta",
+        ADD_PRODUCT_META_FROM_CSV: "/add_product_meta_from_csv",
+        SEND_PRODUCT_META_TO_CSV: "/export_product_meta_to_csv",
+      },
+      ASSIGN_CAT_PRD: {
+        ADD_ASSIGN_CAT_PRD: "/add_assign_cat_prd",
+        EDIT_ASSIGN_CAT_PRD: "/edit_assign_cat_prd",
+        VIEW_ASSIGN_CAT_PRD: "/view_assign_cat_prd",
+        DELETE_ASSIGN_CAT_PRD: "/delete_assign_cat_prd",
+        ASSIGNED_ASSIGN_CAT_PRD: "/assigned_assign_cat_prd",
+        UNASSIGNED_ASSIGN_CAT_PRD: "/unassigned_assign_cat_prd",
+        ADD_ASSIGN_CAT_PRD_FROM_CSV: "/add_assign_cat_prd_from_csv",
+        SEND_ASSIGN_CAT_PRD_TO_CSV: "/send_assign_cat_prd_from_csv",
+      },
     },
   },
   ROUTER: {
@@ -73,6 +91,8 @@ const config = {
     CATEGORY: "/category",
     CATEGORY_META: "/category_meta",
     PRODUCT: "/product",
+    PRODUCT_META: "/product_meta",
+    ASSIGN_CAT_PRD: "/assign_cat_prd",
   },
   COLLECTION: {
     USER: "users",
@@ -81,6 +101,8 @@ const config = {
     CATEGORY: "category",
     CATEGORY_META: "category_meta",
     PRODUCT: "product",
+    PRODUCT_META: "product_meta",
+    ASSIGN_CAT_PRD: "assign_cat_prd",
   },
   REGEXP: {
     NAME: /^([\w]{1,})+\s+([\w\s]{1,})+$/i,
@@ -103,6 +125,13 @@ const config = {
     PAGINATION: {
       STARTING_AFTER: "starting after parameter is missing",
       LIMIT: "limit parameter is missing",
+    },
+    META: {
+      META_TITLE: "meta title should not be empty!",
+      META_KEYWORD: "Meta keyword should not be empty!",
+      META_DESC: "Meta description should not be empty!",
+      META_ID: "Meta _id should be valid!",
+      META_CONTENT: "Meta content should not be empty!",
     },
     USER: {
       NAME: "name field can not be empty! ",
@@ -133,12 +162,7 @@ const config = {
       CATEGORY_ID: "category_id is not valid!",
     },
     CATEGORY_META: {
-      META_TITLE: "Category title should not be empty!",
       CATEGORY_ID: "At least one category should be selected!",
-      META_KEYWORD: "Meta keyword should not be empty!",
-      META_DESC: "Meta description should not be empty!",
-      META_ID: "Meta _id should be valid!",
-      META_CONTENT: "Meta content should not be empty!",
     },
     PRODUCT: {
       PRODUCT_NAME: "Product name should not be empty!",
@@ -151,6 +175,15 @@ const config = {
       PRODUCT_CATEGORY_ID: "Product category should not be emopty!",
       INVALID_ID: "Invalid _id",
       PRODUCT_ID: "Product _id should not be empty!",
+    },
+    PRODUCT_META: {
+      PRODUCT_ID: "At least one product should be select for product meta!",
+    },
+    ASSIGN_CAT_PRD: {
+      PRODUCT_ID:
+        "At least one product should be select for assign category product!",
+      CATEGORY_ID:
+        "At least one category should be selected for assign category product!",
     },
   },
   RESPONSE: {
