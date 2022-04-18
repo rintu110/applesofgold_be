@@ -87,6 +87,16 @@ router.post(
               as: "product",
             },
           },
+          { $unwind: "$product" },
+          {
+            $project: {
+              product_nm: "$product.product_nm",
+              meta_desc: 1,
+              meta_keyword: 1,
+              meta_title: 1,
+              prd_id: 1,
+            },
+          },
           {
             $facet: {
               result: [
@@ -150,6 +160,16 @@ router.post(
               localField: "prd_id",
               foreignField: "_id",
               as: "product",
+            },
+          },
+          { $unwind: "$product" },
+          {
+            $project: {
+              product_nm: "$product.product_nm",
+              meta_desc: 1,
+              meta_keyword: 1,
+              meta_title: 1,
+              prd_id: 1,
             },
           },
           {

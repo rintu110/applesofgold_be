@@ -103,11 +103,11 @@ router.post(
           { $unwind: "$product" },
           {
             $project: {
-              "category.category_nm": 1,
-              "product.product_nm": 1,
-              "category._id": 1,
-              "product._id": 1,
+              category_nm: "$category.category_nm",
+              product_nm: "$product.product_nm",
               status: 1,
+              prd_id: 1,
+              cat_id: 1,
             },
           },
           {
@@ -191,11 +191,11 @@ router.post(
           },
           {
             $project: {
-              "category.category_nm": 1,
-              "product.product_nm": 1,
-              "category._id": 1,
-              "product._id": 1,
+              category_nm: "$category.category_nm",
+              product_nm: "$product.product_nm",
               status: 1,
+              prd_id: 1,
+              cat_id: 1,
             },
           },
           {

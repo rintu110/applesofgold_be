@@ -103,6 +103,21 @@ router.post(
               as: "category",
             },
           },
+          { $unwind: "$category" },
+          {
+            $project: {
+              category_nm: "$category.category_nm",
+              cat_id: 1,
+              code: 1,
+              cost: 1,
+              prd_desc: 1,
+              price: 1,
+              product_nm: 1,
+              status: 1,
+              taxable: 1,
+              weight: 1,
+            },
+          },
           {
             $facet: {
               result: [
@@ -184,6 +199,21 @@ router.post(
               localField: "cat_id",
               foreignField: "_id",
               as: "category",
+            },
+          },
+          { $unwind: "$category" },
+          {
+            $project: {
+              category_nm: "$category.category_nm",
+              cat_id: 1,
+              code: 1,
+              cost: 1,
+              prd_desc: 1,
+              price: 1,
+              product_nm: 1,
+              status: 1,
+              taxable: 1,
+              weight: 1,
             },
           },
           {
