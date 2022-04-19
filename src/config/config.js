@@ -82,6 +82,14 @@ const config = {
         ADD_ASSIGN_CAT_PRD_FROM_CSV: "/add_assign_cat_prd_from_csv",
         SEND_ASSIGN_CAT_PRD_TO_CSV: "/send_assign_cat_prd_from_csv",
       },
+      ATTRIBUTES: {
+        ADD_ATTRIBUTES: "/add_attributes",
+        EDIT_ATTRIBUTES: "/edit_attributes",
+        VIEW_ATTRIBUTES: "/view_attributes",
+        DELETE_ATTRIBUTES: "/delete_attributes",
+        ADD_ATTRIBUTES_FROM_CSV: "/add_attributes_from_csv",
+        SEND_ATTRIBUTES_TO_CSV: "/send_attributes_from_csv",
+      },
     },
   },
   ROUTER: {
@@ -93,6 +101,7 @@ const config = {
     PRODUCT: "/product",
     PRODUCT_META: "/product_meta",
     ASSIGN_CAT_PRD: "/assign_cat_prd",
+    ATTRIBUTES: "/attributes",
   },
   COLLECTION: {
     USER: "users",
@@ -103,6 +112,7 @@ const config = {
     PRODUCT: "product",
     PRODUCT_META: "product_meta",
     ASSIGN_CAT_PRD: "assign_cat_prd",
+    ATTRIBUTES: "attributes",
   },
   REGEXP: {
     NAME: /^([\w]{1,})+\s+([\w\s]{1,})+$/i,
@@ -184,6 +194,10 @@ const config = {
         "At least one product should be select for assign category product!",
       CATEGORY_ID:
         "At least one category should be selected for assign category product!",
+    },
+    ATTRIBUTES: {
+      ATTRIBUTES_PROMPT: "attributes prompt should not be empty!",
+      ATTRIBUTES_CODE: "attributes code should not be empty!",
     },
   },
   RESPONSE: {
