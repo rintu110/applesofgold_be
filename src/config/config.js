@@ -198,6 +198,9 @@ const config = {
     ATTRIBUTES: {
       ATTRIBUTES_PROMPT: "attributes prompt should not be empty!",
       ATTRIBUTES_CODE: "attributes code should not be empty!",
+      ATTRIBUTES_TYPE: "attributes type should not be empty!",
+      ATTRIBUTES_IMAGE: "attributes image should not be empty!",
+      ATTRIBUTES_MESSAGE: "attributes label should not be empty!",
     },
   },
   RESPONSE: {

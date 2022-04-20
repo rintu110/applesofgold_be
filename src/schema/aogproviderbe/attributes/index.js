@@ -13,6 +13,20 @@ module.exports = {
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_CODE),
+    image: yup
+      .string()
+      .trim()
+      .url()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_IMAGE),
+    attr_type: yup
+      .string()
+      .trim()
+      .oneOf(["checkBox", "radioButton", "dropdownList", "textBox", "textArea"])
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_TYPE),
+    label: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_MESSAGE),
   }),
 
   editAttributeSchema: yup.object({
@@ -24,6 +38,20 @@ module.exports = {
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_CODE),
+    image: yup
+      .string()
+      .trim()
+      .url()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_IMAGE),
+    attr_type: yup
+      .string()
+      .trim()
+      .oneOf(["checkBox", "radioButton", "dropdownList", "textBox", "textArea"])
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_TYPE),
+    label: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_MESSAGE),
     attribute_id: yup
       .string()
       .trim()

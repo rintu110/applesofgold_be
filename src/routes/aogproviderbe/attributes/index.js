@@ -23,11 +23,14 @@ router.post(
   validate(attributeSchema.addAttributeSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { prompt, code, user_id } = req.body;
+    const { prompt, code, image, attr_type, label, user_id } = req.body;
 
     const body = {
       prompt: prompt,
       code: code,
+      image: image,
+      attr_type: attr_type,
+      label: label,
       created_at: new Date(),
       created_by: user_id,
       updated_at: new Date(),
@@ -154,12 +157,15 @@ router.post(
   validate(attributeSchema.editAttributeSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { prompt, code, attribute_id } = req.body;
+    const { prompt, code, image, attr_type, label, attribute_id } = req.body;
 
     const body = {
       $set: {
         prompt: prompt,
         code: code,
+        image: image,
+        attr_type: attr_type,
+        label: label,
         updated_at: new Date(),
       },
     };
@@ -226,22 +232,36 @@ router.post(
         if (csvrow.length > 0) {
           if (
             csvrow[0].hasOwnProperty("prompt") &&
-            csvrow[0].hasOwnProperty("code")
+            csvrow[0].hasOwnProperty("code") &&
+            csvrow[0].hasOwnProperty("image") &&
+            csvrow[0].hasOwnProperty("attr_type") &&
+            csvrow[0].hasOwnProperty("label")
           ) {
             const valid = csvrow.find(
-              (item) => item.prompt === "" || item.code === ""
+              (item) =>
+                item.prompt === "" ||
+                item.code === "" ||
+                item.attr_type === "" ||
+                item.label === ""
             );
 
             const validIndex =
               csvrow.findIndex(
-                (item) => item.prompt === "" || item.code === ""
+                (item) =>
+                  item.prompt === "" ||
+                  item.code === "" ||
+                  item.attr_type === "" ||
+                  item.label === ""
               ) + 2;
 
             if (
               valid !== undefined &&
               valid !== null &&
               valid !== "" &&
-              (valid.prompt === "" || valid.code === "")
+              (valid.prompt === "" ||
+                valid.code === "" ||
+                valid.attr_type === "" ||
+                valid.label === "")
             ) {
               res.json({
                 status: false,
@@ -340,7 +360,9 @@ router.post(
   async (req, res) => {
     viewAll({}, COLLECTION.ATTRIBUTES, async (status, message, result) => {
       if (status && result.length > 0) {
-        const json2csv = new Parser({ fields: ["prompt", "code"] });
+        const json2csv = new Parser({
+          fields: ["prompt", "code", "image", "attr_type", "label"],
+        });
         const csv = json2csv.parse(result);
         res.send(csv);
       } else {
