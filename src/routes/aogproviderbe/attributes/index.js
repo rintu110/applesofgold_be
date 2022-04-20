@@ -116,6 +116,18 @@ router.post(
                 $options: "i",
               },
             },
+            {
+              attr_type: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
+            {
+              label: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
           ],
         },
         startingAfter,
