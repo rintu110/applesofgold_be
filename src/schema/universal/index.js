@@ -37,4 +37,8 @@ module.exports = {
       )
       .required(SCHEMA_MESSAGE._ID.ID),
   }),
+
+  searchAll: yup.object({
+    searchKeyWord: yup.string().trim().required(SCHEMA_MESSAGE.SEARCH),
+  }),
 };

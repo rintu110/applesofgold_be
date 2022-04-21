@@ -87,8 +87,19 @@ const config = {
         EDIT_ATTRIBUTES: "/edit_attributes",
         VIEW_ATTRIBUTES: "/view_attributes",
         DELETE_ATTRIBUTES: "/delete_attributes",
+        ASSIGNED_ATTRIBUTES: "/assigned_attributes",
+        UNASSIGNED_ATTRIBUTES: "/unassigned_attributes",
+        VIEW_ALL_ATTRIBUTES: "/view_all_attributes",
         ADD_ATTRIBUTES_FROM_CSV: "/add_attributes_from_csv",
         SEND_ATTRIBUTES_TO_CSV: "/send_attributes_from_csv",
+      },
+      ATTRIBUTES_OPTION: {
+        ADD_ATTRIBUTES_OPTION: "/add_attributes_options",
+        EDIT_ATTRIBUTES_OPTION: "/edit_attributes_options",
+        VIEW_ATTRIBUTES_OPTION: "/view_attributes_options",
+        DELETE_ATTRIBUTES_OPTION: "/delete_attributes_options",
+        ADD_ATTRIBUTES_OPTION_FROM_CSV: "/add_attributes_options_from_csv",
+        SEND_ATTRIBUTES_OPTION_TO_CSV: "/send_attributes_options_from_csv",
       },
     },
   },
@@ -102,6 +113,7 @@ const config = {
     PRODUCT_META: "/product_meta",
     ASSIGN_CAT_PRD: "/assign_cat_prd",
     ATTRIBUTES: "/attributes",
+    ATTRIBUTES_OPTION: "/attributes_option",
   },
   COLLECTION: {
     USER: "users",
@@ -113,6 +125,7 @@ const config = {
     PRODUCT_META: "product_meta",
     ASSIGN_CAT_PRD: "assign_cat_prd",
     ATTRIBUTES: "attributes",
+    ATTRIBUTES_OPTION: "attributes_option",
   },
   REGEXP: {
     NAME: /^([\w]{1,})+\s+([\w\s]{1,})+$/i,
@@ -128,6 +141,7 @@ const config = {
       INVALID: "Invalid _id",
       ID: "_id should not be empty!",
     },
+    SEARCH: "search field can not be empty!",
     CSV: {
       CSV_NAME: "csv file should be selected",
       CSV_SIZE: "csv file size is too large",
@@ -201,6 +215,15 @@ const config = {
       ATTRIBUTES_TYPE: "attributes type should not be empty!",
       ATTRIBUTES_IMAGE: "attributes image should not be empty!",
       ATTRIBUTES_MESSAGE: "attributes label should not be empty!",
+      ATTRIBUTES_LABEL_CODE: "attributes label code should not be empty!",
+    },
+    ATTRIBUTES_OPTIONS: {
+      ATTRIBUTES_OPTIONS_PROMPT:
+        "attributes options prompt should not be empty!",
+      ATTRIBUTES_OPTIONS_CODE: "attributes options code should not be empty!",
+      ATTRIBUTES_OPTIONS_IMAGE: "attributes options image should not be empty!",
+      ATTRIBUTES_OPTIONS_PRICE: "attributes options price should not be empty!",
+      ATTRIBUTES_OPTIONS_COST: "attributes options cost should not be empty!",
     },
   },
   RESPONSE: {

@@ -8,6 +8,7 @@ const universal = require("../../../schema/universal");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
+const { updateMany } = require("../../../mongo-qury/updateMany");
 const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
 const { ObjectId } = require("mongodb");
 const { update } = require("../../../mongo-qury/updateOne");
@@ -23,7 +24,8 @@ router.post(
   validate(attributeSchema.addAttributeSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { prompt, code, image, attr_type, label, user_id } = req.body;
+    const { prompt, code, image, attr_type, label, labelcode, user_id } =
+      req.body;
 
     const body = {
       prompt: prompt,
@@ -31,6 +33,8 @@ router.post(
       image: image,
       attr_type: attr_type,
       label: label,
+      labelcode: labelcode,
+      status: 0,
       created_at: new Date(),
       created_by: user_id,
       updated_at: new Date(),
@@ -128,6 +132,12 @@ router.post(
                 $options: "i",
               },
             },
+            {
+              labelcode: {
+                $regex: searchKeyWord,
+                $options: "i",
+              },
+            },
           ],
         },
         startingAfter,
@@ -169,7 +179,8 @@ router.post(
   validate(attributeSchema.editAttributeSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { prompt, code, image, attr_type, label, attribute_id } = req.body;
+    const { prompt, code, image, attr_type, label, labelcode, attribute_id } =
+      req.body;
 
     const body = {
       $set: {
@@ -178,6 +189,7 @@ router.post(
         image: image,
         attr_type: attr_type,
         label: label,
+        labelcode: labelcode,
         updated_at: new Date(),
       },
     };
@@ -231,6 +243,81 @@ router.post(
 );
 
 router.post(
+  API.ADMIN.ATTRIBUTES.ASSIGNED_ATTRIBUTES,
+  validate(universal.assigneUnassignedSchema),
+  ensureAuthorisedAdmin,
+  async (req, res) => {
+    const { _id } = req.body;
+
+    const attribute_id = await _id.map((item) => new ObjectId(item));
+
+    let filter = { _id: { $in: attribute_id } };
+
+    let body = {
+      $set: { status: 1 },
+    };
+
+    updateMany(
+      filter,
+      body,
+      COLLECTION.ATTRIBUTES,
+      (status, message, result) => {
+        res.json({ status: status, message: message, result: result });
+      }
+    );
+  }
+);
+
+router.post(
+  API.ADMIN.ATTRIBUTES.UNASSIGNED_ATTRIBUTES,
+  validate(universal.assigneUnassignedSchema),
+  ensureAuthorisedAdmin,
+  async (req, res) => {
+    const { _id } = req.body;
+
+    const attribute_id = await _id.map((item) => new ObjectId(item));
+
+    let filter = { _id: { $in: attribute_id } };
+
+    let body = {
+      $set: { status: 0 },
+    };
+
+    updateMany(
+      filter,
+      body,
+      COLLECTION.ATTRIBUTES,
+      (status, message, result) => {
+        res.json({ status: status, message: message, result: result });
+      }
+    );
+  }
+);
+
+router.post(
+  API.ADMIN.ATTRIBUTES.VIEW_ALL_ATTRIBUTES,
+  validate(universal.searchAll),
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    const { searchKeyWord } = req.body;
+
+    viewAll(
+      {
+        product_nm: { $regex: searchKeyWord },
+      },
+      COLLECTION.PRODUCT,
+      (status, message, result) => {
+        res.json({
+          status: status,
+          message: message,
+          result: result,
+        });
+      }
+    );
+  }
+);
+
+router.post(
   API.ADMIN.ATTRIBUTES.ADD_ATTRIBUTES_FROM_CSV,
   filesvalidate(universal.importAndExportCsv),
   ensureAuthorisedAdmin,
@@ -247,14 +334,16 @@ router.post(
             csvrow[0].hasOwnProperty("code") &&
             csvrow[0].hasOwnProperty("image") &&
             csvrow[0].hasOwnProperty("attr_type") &&
-            csvrow[0].hasOwnProperty("label")
+            csvrow[0].hasOwnProperty("label") &&
+            csvrow[0].hasOwnProperty("labelcode")
           ) {
             const valid = csvrow.find(
               (item) =>
                 item.prompt === "" ||
                 item.code === "" ||
                 item.attr_type === "" ||
-                item.label === ""
+                item.label === "" ||
+                item.labelcode === ""
             );
 
             const validIndex =
@@ -263,7 +352,8 @@ router.post(
                   item.prompt === "" ||
                   item.code === "" ||
                   item.attr_type === "" ||
-                  item.label === ""
+                  item.label === "" ||
+                  item.labelcode === ""
               ) + 2;
 
             if (
@@ -273,7 +363,8 @@ router.post(
               (valid.prompt === "" ||
                 valid.code === "" ||
                 valid.attr_type === "" ||
-                valid.label === "")
+                valid.label === "" ||
+                valid.labelcode === "")
             ) {
               res.json({
                 status: false,
@@ -373,7 +464,14 @@ router.post(
     viewAll({}, COLLECTION.ATTRIBUTES, async (status, message, result) => {
       if (status && result.length > 0) {
         const json2csv = new Parser({
-          fields: ["prompt", "code", "image", "attr_type", "label"],
+          fields: [
+            "prompt",
+            "code",
+            "image",
+            "attr_type",
+            "label",
+            "labelcode",
+          ],
         });
         const csv = json2csv.parse(result);
         res.send(csv);

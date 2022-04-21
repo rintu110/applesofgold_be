@@ -65,6 +65,73 @@ module.exports = {
     });
   },
 
+  findAttribute: (collection, filter, csvrow, callBack) => {
+    let row = [];
+
+    viewAll(filter, collection, async (status, message, result) => {
+      if (
+        result !== null &&
+        result !== undefined &&
+        result !== "" &&
+        result.length
+      ) {
+        row = await csvrow.map((item) =>
+          result.find((item2) => item.prompt === item2.prompt) !== undefined
+            ? {
+                ...item,
+                attr_id: result.find((item2) => item.prompt === item2.prompt)
+                  ._id,
+              }
+            : { ...item, attr_id: 0 }
+        );
+        callBack(row);
+      } else {
+        row = await csvrow.map((item) => ({
+          ...item,
+          attr_id: 0,
+        }));
+        callBack(row);
+      }
+    });
+  },
+
+  findAllAttribute: (collection, filter, rows, callBack) => {
+    let row = [];
+    viewAll(filter, collection, async (status, message, result) => {
+      if (
+        result !== null &&
+        result !== undefined &&
+        result !== "" &&
+        result.length
+      ) {
+        row = rows.map((item) =>
+          result.find(
+            (item2) => item.attr_id.toString() == item2._id.toString()
+          ) !== undefined
+            ? {
+                ...item,
+                attribute_prompt: result.find(
+                  (item2) => item.attr_id.toString() === item2._id.toString()
+                ).prompt,
+              }
+            : {
+                ...item,
+                attribute_prompt: "",
+              }
+        );
+
+        callBack(row);
+      } else {
+        row = rows.map((item) => ({
+          ...item,
+          attribute_prompt: "",
+        }));
+
+        callBack(row);
+      }
+    });
+  },
+
   findAllCategory: (collection, filter, rows, callBack) => {
     let row = [];
     viewAll(filter, collection, async (status, message, result) => {

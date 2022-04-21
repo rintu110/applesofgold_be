@@ -294,13 +294,14 @@ router.post(
 
 router.post(
   API.ADMIN.CATEGORY.VIEW_ALL_CATEGORY,
+  validate(universal.searchAll),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { searchKeyWord } = req.body;
 
     viewAll(
       {
-        category_nm: { $regex: searchKeyWord.trim() },
+        category_nm: { $regex: searchKeyWord },
       },
       COLLECTION.CATEGORY,
       (status, message, result) => {

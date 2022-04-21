@@ -372,13 +372,14 @@ router.post(
 
 router.post(
   API.ADMIN.PRODUCT.VIEW_ALL_PRODUCT,
+  validate(universal.searchAll),
   ensureAuthorisedAdmin,
   (req, res) => {
     const { searchKeyWord } = req.body;
 
     viewAll(
       {
-        product_nm: { $regex: searchKeyWord.trim() },
+        product_nm: { $regex: searchKeyWord },
       },
       COLLECTION.PRODUCT,
       (status, message, result) => {

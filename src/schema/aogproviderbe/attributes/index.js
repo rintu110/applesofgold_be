@@ -27,6 +27,10 @@ module.exports = {
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_MESSAGE),
+    labelcode: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_LABEL_CODE),
   }),
 
   editAttributeSchema: yup.object({
@@ -52,6 +56,10 @@ module.exports = {
       .string()
       .trim()
       .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_MESSAGE),
+    labelcode: yup
+      .string()
+      .trim()
+      .required(SCHEMA_MESSAGE.ATTRIBUTES.ATTRIBUTES_LABEL_CODE),
     attribute_id: yup
       .string()
       .trim()
