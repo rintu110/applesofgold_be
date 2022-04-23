@@ -8,7 +8,6 @@ const universal = require("../../../schema/universal");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
 const { view } = require("../../../mongo-qury/viewOne");
 const { insert } = require("../../../mongo-qury/insertOne");
-const { viewInPagination } = require("../../../mongo-qury/viewInPagination");
 const {
   viewInPaginationLookUp,
 } = require("../../../mongo-qury/aggregateFindAllinPagination");
@@ -80,10 +79,39 @@ router.post(
       searchKeyWord === null ||
       searchKeyWord === ""
     ) {
-      viewInPagination(
-        {},
-        startingAfter,
-        limit,
+      viewInPaginationLookUp(
+        [
+          { $sort: { _id: -1 } },
+          {
+            $lookup: {
+              from: COLLECTION.ATTRIBUTES,
+              localField: "attr_id",
+              foreignField: "_id",
+              as: "attribute",
+            },
+          },
+          { $unwind: "$attribute" },
+          {
+            $project: {
+              attribute: "$attribute.prompt",
+              prompt: 1,
+              code: 1,
+              image: 1,
+              price: 1,
+              cost: 1,
+              attr_id: 1,
+            },
+          },
+          {
+            $facet: {
+              result: [
+                { $skip: parseInt(startingAfter) },
+                { $limit: parseInt(limit) },
+              ],
+              total: [{ $count: "total" }],
+            },
+          },
+        ],
         COLLECTION.ATTRIBUTES_OPTION,
         (status, message, result) => {
           if (result.length) {
@@ -153,25 +181,25 @@ router.post(
                   },
                 },
                 {
-                  "$attribute.prompt": {
+                  "attribute.prompt": {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
                 },
                 {
-                  "$attribute.code": {
+                  "attribute.code": {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
                 },
                 {
-                  "$attribute.attr_type": {
+                  "attribute.attr_type": {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
                 },
                 {
-                  "$attribute.label": {
+                  "attribute.label": {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
@@ -408,7 +436,7 @@ router.post(
                     findAttribute(
                       COLLECTION.ATTRIBUTES,
                       filter,
-                      row,
+                      csvrow,
                       (rows) => {
                         insetEverything(rows);
                       }

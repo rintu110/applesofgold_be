@@ -76,11 +76,13 @@ module.exports = {
         result.length
       ) {
         row = await csvrow.map((item) =>
-          result.find((item2) => item.prompt === item2.prompt) !== undefined
+          result.find((item2) => item.attribute_prompt === item2.prompt) !==
+          undefined
             ? {
                 ...item,
-                attr_id: result.find((item2) => item.prompt === item2.prompt)
-                  ._id,
+                attr_id: result.find(
+                  (item2) => item.attribute_prompt === item2.prompt
+                )._id,
               }
             : { ...item, attr_id: 0 }
         );

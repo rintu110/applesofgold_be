@@ -303,9 +303,9 @@ router.post(
 
     viewAll(
       {
-        product_nm: { $regex: searchKeyWord },
+        prompt: { $regex: searchKeyWord },
       },
-      COLLECTION.PRODUCT,
+      COLLECTION.ATTRIBUTES,
       (status, message, result) => {
         res.json({
           status: status,

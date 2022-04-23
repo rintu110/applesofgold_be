@@ -15,12 +15,12 @@ module.exports = {
         if (doc) {
           callBack(true, FOUND, doc);
         } else {
-          callBack(false, FAILED, null);
+          callBack(false, FAILED, []);
         }
       })
       .catch((err) => {
         console.log(err);
-        callBack(false, FAILED, err.message);
+        callBack(false, FAILED, []);
       });
   },
 };

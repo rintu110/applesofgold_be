@@ -21,12 +21,10 @@ module.exports = {
     price: yup
       .string()
       .trim()
-      .url()
       .required(SCHEMA_MESSAGE.ATTRIBUTES_OPTIONS.ATTRIBUTES_OPTIONS_PRICE),
     cost: yup
       .string()
       .trim()
-      .url()
       .required(SCHEMA_MESSAGE.ATTRIBUTES_OPTIONS.ATTRIBUTES_OPTIONS_COST),
     attr_id: yup
       .string()
@@ -52,12 +50,10 @@ module.exports = {
     price: yup
       .string()
       .trim()
-      .url()
       .required(SCHEMA_MESSAGE.ATTRIBUTES_OPTIONS.ATTRIBUTES_OPTIONS_PRICE),
     cost: yup
       .string()
       .trim()
-      .url()
       .required(SCHEMA_MESSAGE.ATTRIBUTES_OPTIONS.ATTRIBUTES_OPTIONS_COST),
     attr_id: yup
       .string()
