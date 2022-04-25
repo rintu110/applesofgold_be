@@ -4,6 +4,7 @@
   "description": "applesofgold backend APIs integration",
   "main": "index.js",
   "scripts": {
+    "start": "npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "headford developers",
