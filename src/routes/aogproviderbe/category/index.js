@@ -8,7 +8,6 @@ const {
   addCategorySchema,
   editCategorySchema,
   deleteCategorySchema,
-  assigneUnassignedSchema,
 } = require("../../../schema/aogproviderbe/category");
 const universal = require("../../../schema/universal");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
@@ -31,14 +30,15 @@ router.post(
   validate(addCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { category_nm, code, user_id, page_content, parent_id } = req.body;
+    const { category_nm, code, user_id } = req.body;
 
     const body = {
       category_nm: category_nm,
+      category_header: [],
+      category_footer: [],
+      category_path: (category_nm + "-" + code + ".html").split(" ").join("-"),
       code: code,
       status: 0,
-      page_content: page_content,
-      parent_id: parent_id === 0 ? parent_id : new ObjectId(parent_id),
       created_at: new Date(),
       created_by: user_id,
       updated_at: new Date(),
@@ -49,7 +49,7 @@ router.post(
       COLLECTION.CATEGORY,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Category already exists." });
+          res.json({ status: false, message: RESPONSE.DATA });
         } else {
           insert(body, COLLECTION.CATEGORY, (status1, message1, result1) => {
             res.json({
@@ -79,14 +79,6 @@ router.post(
         [
           { $sort: { _id: -1 } },
           {
-            $lookup: {
-              from: COLLECTION.CATEGORY,
-              localField: "parent_id",
-              foreignField: "_id",
-              as: "parent",
-            },
-          },
-          {
             $facet: {
               result: [
                 { $skip: parseInt(startingAfter) },
@@ -98,13 +90,22 @@ router.post(
         ],
         COLLECTION.CATEGORY,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -133,24 +134,10 @@ router.post(
                     $options: "i",
                   },
                 },
-                {
-                  page_content: {
-                    $regex: searchKeyWord,
-                    $options: "i",
-                  },
-                },
               ],
             },
           },
           { $sort: { _id: -1 } },
-          {
-            $lookup: {
-              from: COLLECTION.CATEGORY,
-              localField: "parent_id",
-              foreignField: "_id",
-              as: "parent",
-            },
-          },
           {
             $facet: {
               result: [
@@ -163,13 +150,22 @@ router.post(
         ],
         COLLECTION.CATEGORY,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -189,35 +185,24 @@ router.post(
   validate(editCategorySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { category_nm, code, parent_id, page_content, category_id } =
-      req.body;
+    const { category_nm, code, category_id } = req.body;
 
     const body = {
       $set: {
         category_nm: category_nm,
-        parent_id: parent_id === 0 ? parent_id : new ObjectId(parent_id),
-        page_content: page_content,
         code: code,
+        category_path: (category_nm + "-" + code + ".html")
+          .split(" ")
+          .join("-"),
         updated_at: new Date(),
       },
     };
-
-    view(
+    update(
       { _id: new ObjectId(category_id) },
+      body,
       COLLECTION.CATEGORY,
       (status, message, result) => {
-        if (status) {
-          update(
-            { _id: new ObjectId(category_id) },
-            body,
-            COLLECTION.CATEGORY,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
-            }
-          );
-        } else {
-          res.json({ status: status, message: message, result: result });
-        }
+        res.json({ status: status, message: message, result: result });
       }
     );
   }
@@ -230,21 +215,11 @@ router.post(
   (req, res) => {
     const { category_id } = req.body;
 
-    view(
+    deleteOne(
       { _id: new ObjectId(category_id) },
       COLLECTION.CATEGORY,
       (status, message, result) => {
-        if (status) {
-          deleteOne(
-            { _id: new ObjectId(category_id) },
-            COLLECTION.CATEGORY,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
-            }
-          );
-        } else {
-          res.json({ status: status, message: message, result: result });
-        }
+        res.json({ status: status, message: message, result: result });
       }
     );
   }
@@ -252,14 +227,14 @@ router.post(
 
 router.post(
   API.ADMIN.CATEGORY.ASSIGNED_CATEGORY,
-  validate(assigneUnassignedSchema),
+  validate(universal.assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { category_id } = req.body;
+    const { _id } = req.body;
 
-    const _id = await category_id.map((item) => new ObjectId(item));
+    const category_id = await _id.map((item) => new ObjectId(item));
 
-    let filter = { _id: { $in: _id } };
+    let filter = { _id: { $in: category_id } };
 
     let body = {
       $set: { status: 1 },
@@ -273,14 +248,14 @@ router.post(
 
 router.post(
   API.ADMIN.CATEGORY.UNASSIGNED_CATEGORY,
-  validate(assigneUnassignedSchema),
+  validate(universal.assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { category_id } = req.body;
+    const { _id } = req.body;
 
-    const _id = await category_id.map((item) => new ObjectId(item));
+    const category_id = await _id.map((item) => new ObjectId(item));
 
-    let filter = { _id: { $in: _id } };
+    let filter = { _id: { $in: category_id } };
 
     let body = {
       $set: { status: 0 },
@@ -302,6 +277,7 @@ router.post(
     viewAll(
       {
         category_nm: { $regex: searchKeyWord },
+        status: 1,
       },
       COLLECTION.CATEGORY,
       (status, message, result) => {
@@ -378,10 +354,19 @@ router.post(
                       row.length > 0
                     ) {
                       let body = row.map((items) => ({
-                        ...items,
-                        page_content: "",
-                        parent_id: 0,
+                        category_nm: items.category_nm,
+                        code: items.code,
                         status: 0,
+                        category_header: [],
+                        category_footer: [],
+                        category_path: (
+                          items.category_nm +
+                          "-" +
+                          items.code +
+                          ".html"
+                        )
+                          .split(" ")
+                          .join("-"),
                         created_at: new Date(),
                         created_by: user_id,
                         updated_at: new Date(),
@@ -407,10 +392,19 @@ router.post(
                     }
                   } else {
                     let body = csvrow.map((items) => ({
-                      ...items,
-                      page_content: "",
-                      parent_id: 0,
+                      category_nm: items.category_nm,
+                      code: items.code,
                       status: 0,
+                      category_path: (
+                        items.category_nm +
+                        "-" +
+                        items.code +
+                        ".html"
+                      )
+                        .split(" ")
+                        .join("-"),
+                      category_header: [],
+                      category_footer: [],
                       created_at: new Date(),
                       created_by: user_id,
                       updated_at: new Date(),

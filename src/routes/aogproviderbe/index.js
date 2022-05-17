@@ -7,8 +7,8 @@ const product = require("./product");
 const product_meta = require("./product_meta");
 const assign_cat_prd = require("./assign_cat_prd");
 const attribute = require("./attributes");
-const attributes_option = require("./attributes_options");
-
+const local_attribute = require("./local_attribute");
+const shipping_message = require("./shipping_message");
 const config = require("../../config/config");
 
 const { ROUTER } = config;
@@ -21,6 +21,7 @@ router.use(ROUTER.PRODUCT, product);
 router.use(ROUTER.PRODUCT_META, product_meta);
 router.use(ROUTER.ASSIGN_CAT_PRD, assign_cat_prd);
 router.use(ROUTER.ATTRIBUTES, attribute);
-router.use(ROUTER.ATTRIBUTES_OPTION, attributes_option);
+router.use(ROUTER.SHIPPING_MESSAGE, shipping_message);
+router.use(ROUTER.LOCAL_ATTRIBUTES, local_attribute);
 
 module.exports = router;

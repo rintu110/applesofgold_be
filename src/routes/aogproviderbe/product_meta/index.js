@@ -90,7 +90,7 @@ router.post(
           { $unwind: "$product" },
           {
             $project: {
-              product_nm: "$product.product_nm",
+              sku: "$product.sku",
               meta_desc: 1,
               meta_keyword: 1,
               meta_title: 1,
@@ -109,13 +109,22 @@ router.post(
         ],
         COLLECTION.PRODUCT_META,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length > 0) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -165,7 +174,7 @@ router.post(
           { $unwind: "$product" },
           {
             $project: {
-              product_nm: "$product.product_nm",
+              sku: "$product.sku",
               meta_desc: 1,
               meta_keyword: 1,
               meta_title: 1,
@@ -184,13 +193,22 @@ router.post(
         ],
         COLLECTION.PRODUCT_META,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length > 0) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,

@@ -10,12 +10,12 @@ module.exports = {
     server.collection(collection).findOne(filter, (err, doc) => {
       if (err) {
         console.log(err);
-        callBack(false, FAILED, err.message);
+        callBack(false, FAILED, []);
       } else {
         if (doc) {
           callBack(true, FOUND, doc);
         } else {
-          callBack(false, NOT_FOUND, null);
+          callBack(false, NOT_FOUND, []);
         }
       }
     });

@@ -21,28 +21,15 @@ module.exports = {
     country_id: yup
       .string()
       .trim()
-      .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID_INVALID)
-      .required(SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID),
+      .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE._ID.INVALID)
+      .required(SCHEMA_MESSAGE._ID.ID),
   }),
 
   deleteCountrySchema: yup.object({
     country_id: yup
       .string()
       .trim()
-      .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID_INVALID)
-      .required(SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID),
-  }),
-
-  assigneUnassignedSchema: yup.object({
-    country_id: yup
-      .array()
-      .min(1)
-      .of(
-        yup
-          .string()
-          .trim()
-          .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID_INVALID)
-      )
-      .required(SCHEMA_MESSAGE.COUNTRY.COUNTRY_ID),
+      .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE._ID.INVALID)
+      .required(SCHEMA_MESSAGE._ID.ID),
   }),
 };

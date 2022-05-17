@@ -10,10 +10,6 @@ module.exports = {
       .trim()
       .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_NAME),
     code: yup.string().trim().required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_CODE),
-    page_content: yup
-      .string()
-      .trim()
-      .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_PAGE_CONTENT),
   }),
 
   editCategorySchema: yup.object({
@@ -22,10 +18,6 @@ module.exports = {
       .trim()
       .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_NAME),
     code: yup.string().trim().required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_CODE),
-    page_content: yup
-      .string()
-      .trim()
-      .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_PAGE_CONTENT),
     category_id: yup
       .string()
       .trim()
@@ -38,19 +30,6 @@ module.exports = {
       .string()
       .trim()
       .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.CATEGORY.CATEGORY_ID)
-      .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_ID),
-  }),
-
-  assigneUnassignedSchema: yup.object({
-    category_id: yup
-      .array()
-      .min(1)
-      .of(
-        yup
-          .string()
-          .trim()
-          .matches(REGEXP.OBJECT_ID, SCHEMA_MESSAGE.CATEGORY.CATEGORY_ID)
-      )
       .required(SCHEMA_MESSAGE.CATEGORY.CATEGORY_ID),
   }),
 };

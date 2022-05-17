@@ -65,6 +65,38 @@ module.exports = {
     });
   },
 
+  findCountry: (collection, filter, csvrow, callBack) => {
+    let row = [];
+
+    viewAll(filter, collection, async (status, message, result) => {
+      if (
+        result !== null &&
+        result !== undefined &&
+        result !== "" &&
+        result.length
+      ) {
+        row = await csvrow.map((item) =>
+          result.find((item2) => item.country_nm === item2.country_nm) !==
+          undefined
+            ? {
+                ...item,
+                country_id: result.find(
+                  (item2) => item.country_nm === item2.country_nm
+                )._id,
+              }
+            : { ...item, country_id: 0 }
+        );
+        callBack(row);
+      } else {
+        row = await csvrow.map((item) => ({
+          ...item,
+          country_id: 0,
+        }));
+        callBack(row);
+      }
+    });
+  },
+
   findAttribute: (collection, filter, csvrow, callBack) => {
     let row = [];
 
@@ -127,6 +159,42 @@ module.exports = {
         row = rows.map((item) => ({
           ...item,
           attribute_prompt: "",
+        }));
+
+        callBack(row);
+      }
+    });
+  },
+
+  findAllCountry: (collection, filter, rows, callBack) => {
+    let row = [];
+    viewAll(filter, collection, async (status, message, result) => {
+      if (
+        result !== null &&
+        result !== undefined &&
+        result !== "" &&
+        result.length
+      ) {
+        row = rows.map((item) =>
+          result.find(
+            (item2) => item.country_id.toString() === item2._id.toString()
+          ) !== undefined
+            ? {
+                ...item,
+                country_nm: result.find(
+                  (item2) => item.country_id.toString() === item2._id.toString()
+                ).country_nm,
+              }
+            : {
+                ...item,
+                country_nm: "",
+              }
+        );
+        callBack(row);
+      } else {
+        row = rows.map((item) => ({
+          ...item,
+          country_nm: "",
         }));
 
         callBack(row);

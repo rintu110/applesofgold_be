@@ -7,7 +7,6 @@ const {
   addCountrySchema,
   editCountrySchema,
   deleteCountrySchema,
-  assigneUnassignedSchema,
 } = require("../../../schema/aogproviderbe/country");
 const universal = require("../../../schema/universal");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
@@ -29,7 +28,8 @@ router.post(
   validate(addCountrySchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { country_nm, code, user_id } = req.body;
+    const { country_nm, code, country_message, country_flag, user_id } =
+      req.body;
 
     const body = {
       country_nm: country_nm,
@@ -45,7 +45,7 @@ router.post(
       COLLECTION.COUNRTY,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Country already exists." });
+          res.json({ status: false, message: RESPONSE.DATA });
         } else {
           insert(body, COLLECTION.COUNRTY, (status1, message1, result1) => {
             res.json({
@@ -77,13 +77,22 @@ router.post(
         limit,
         COLLECTION.COUNRTY,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -116,13 +125,22 @@ router.post(
         limit,
         COLLECTION.COUNRTY,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total[0].total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -152,22 +170,12 @@ router.post(
       },
     };
 
-    view(
+    update(
       { _id: new ObjectId(country_id) },
+      body,
       COLLECTION.COUNRTY,
       (status, message, result) => {
-        if (status) {
-          update(
-            { _id: new ObjectId(country_id) },
-            body,
-            COLLECTION.COUNRTY,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
-            }
-          );
-        } else {
-          res.json({ status: status, message: message, result: result });
-        }
+        res.json({ status: status, message: message, result: result });
       }
     );
   }
@@ -180,21 +188,11 @@ router.post(
   (req, res) => {
     const { country_id } = req.body;
 
-    view(
+    deleteOne(
       { _id: new ObjectId(country_id) },
       COLLECTION.COUNRTY,
-      (status, message, result) => {
-        if (status) {
-          deleteOne(
-            { _id: new ObjectId(country_id) },
-            COLLECTION.COUNRTY,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
-            }
-          );
-        } else {
-          res.json({ status: status, message: message, result: result });
-        }
+      (status1, message1, result1) => {
+        res.json({ status: status1, message: message1, result: result1 });
       }
     );
   }
@@ -202,14 +200,14 @@ router.post(
 
 router.post(
   API.ADMIN.COUNTRY.ASSIGNED_COUNTRY,
-  validate(assigneUnassignedSchema),
+  validate(universal.assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { country_id } = req.body;
+    const { _id } = req.body;
 
-    const _id = await country_id.map((item) => new ObjectId(item));
+    const country_id = await _id.map((item) => new ObjectId(item));
 
-    let filter = { _id: { $in: _id } };
+    let filter = { _id: { $in: country_id } };
 
     let body = {
       $set: { status: 1 },
@@ -223,14 +221,14 @@ router.post(
 
 router.post(
   API.ADMIN.COUNTRY.UNASSIGNED_COUNTRY,
-  validate(assigneUnassignedSchema),
+  validate(universal.assigneUnassignedSchema),
   ensureAuthorisedAdmin,
   async (req, res) => {
-    const { country_id } = req.body;
+    const { _id } = req.body;
 
-    const _id = await country_id.map((item) => new ObjectId(item));
+    const country_id = await _id.map((item) => new ObjectId(item));
 
-    let filter = { _id: { $in: _id } };
+    let filter = { _id: { $in: country_id } };
 
     let body = {
       $set: { status: 0 },
@@ -370,12 +368,28 @@ router.post(
   async (req, res) => {
     viewAll({}, COLLECTION.COUNRTY, async (status, message, result) => {
       if (status && result.length > 0) {
-        const json2csv = new Parser({ fields: ["country_nm", "code"] });
+        const json2csv = new Parser({
+          fields: ["country_nm", "code"],
+        });
         const csv = json2csv.parse(result);
         res.send(csv);
       } else {
         res.send(RESPONSE.NOT_FOUND);
       }
+    });
+  }
+);
+
+router.post(
+  API.ADMIN.COUNTRY.VIEW_ALL_COUNTRY,
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    viewAll({ status: 1 }, COLLECTION.COUNRTY, (status, message, result) => {
+      res.json({
+        status: status,
+        message: message,
+        result: result,
+      });
     });
   }
 );

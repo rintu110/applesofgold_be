@@ -7,6 +7,9 @@ const {
   addProductSchema,
   editProductSchema,
   deleteProductSchema,
+  updateProductAttribute,
+  updateProductGlobalAttribute,
+  viewProductAttribute,
 } = require("../../../schema/aogproviderbe/product");
 const universal = require("../../../schema/universal");
 const { view } = require("../../../mongo-qury/viewOne");
@@ -16,6 +19,7 @@ const {
 } = require("../../../mongo-qury/aggregateFindAllinPagination");
 const { update } = require("../../../mongo-qury/updateOne");
 const { deleteOne } = require("../../../mongo-qury/deleteOne");
+const { deleteMany } = require("../../../mongo-qury/deleteMany");
 const { viewAll } = require("../../../mongo-qury/findAll");
 const { insertManyBulk } = require("../../../mongo-qury/bulkOperation");
 const { updateMany } = require("../../../mongo-qury/updateMany");
@@ -30,51 +34,250 @@ const { ObjectId } = require("mongodb");
 const { API, COLLECTION, RESPONSE } = config;
 
 router.post(
+  API.ADMIN.PRODUCT.VIEW_GLOBAL_LOCAL_ATTRIBUTES,
+  validate(viewProductAttribute),
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    const { product_id } = req.body;
+
+    viewInPaginationLookUp(
+      [
+        {
+          $match: {
+            _id: new ObjectId(product_id),
+          },
+        },
+        {
+          $lookup: {
+            from: COLLECTION.LOCAL_ATTRIBUTES,
+            let: { local_attribute_ids: "$local_attribute" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$_id", "$$local_attribute_ids"],
+                  },
+                },
+              },
+              {
+                $addFields: {
+                  sort: {
+                    $indexOfArray: ["$$local_attribute_ids", "$_id"],
+                  },
+                },
+              },
+              { $sort: { sort: 1 } },
+            ],
+            as: "local_attributes",
+          },
+        },
+        {
+          $lookup: {
+            from: COLLECTION.ATTRIBUTES,
+            let: { global_attribute_id: "$global_attribute_ids" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$_id", "$$global_attribute_id"],
+                  },
+                },
+              },
+              {
+                $addFields: {
+                  sort: {
+                    $indexOfArray: ["$$global_attribute_id", "$_id"],
+                  },
+                },
+              },
+              { $sort: { sort: 1 } },
+            ],
+            as: "global_attribute",
+          },
+        },
+        {
+          $project: {
+            local_attributes: 1,
+            global_attribute: 1,
+            _id: 0,
+          },
+        },
+      ],
+      COLLECTION.PRODUCT,
+      (status, message, result) => {
+        if (result.length) {
+          res.json({
+            status: status,
+            message: message,
+            result: result[0],
+          });
+        } else {
+          res.json({
+            status: false,
+            message: RESPONSE.NOT_FOUND,
+            result: [],
+          });
+        }
+      }
+    );
+  }
+);
+
+router.post(
   API.ADMIN.PRODUCT.ADD_PRODUCT,
   validate(addProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const {
-      cat_id,
-      product_nm,
-      price,
-      weight,
-      prd_desc,
-      code,
-      cost,
-      taxable,
       user_id,
+      product_name,
+      sku,
+      msrp,
+      price,
+      description,
+      thumbnail_image,
+      closeup_image,
+      alternative_images,
+      shipping_message_id,
+      related_product_ids,
+      category_ids,
+      local_attribute,
+      global_attribute_ids,
+      country_id,
+      gender,
+      metaltype,
+      weight,
+      quantity,
     } = req.body;
 
-    const body = {
-      cat_id: new ObjectId(cat_id),
-      product_nm: product_nm,
-      price: price,
-      code: code,
-      cost: cost,
-      weight: weight,
-      prd_desc: prd_desc,
-      taxable: taxable,
-      created_by: user_id,
-      status: 0,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-
     view(
-      { product_nm: product_nm },
+      { product_name: product_name },
       COLLECTION.PRODUCT,
       (status, message, result) => {
         if (status) {
-          res.json({ status: false, message: "Product already exists." });
+          res.json({ status: false, message: RESPONSE.DATA });
         } else {
-          insert(body, COLLECTION.PRODUCT, (status1, message1, result1) => {
-            res.json({
-              status: status1,
-              message: message1,
-              result: result1,
+          local_attribute.length > 0 &&
+            local_attribute.map((item) => ({
+              prompt: item.prompt,
+              code: item.code,
+              image: item.image,
+              attr_type: item.attr_type,
+              required: item.required,
+              attr_options: item.attr_options,
+              status: 0,
+              created_at: new Date(),
+              created_by: user_id,
+              updated_at: new Date(),
+            }));
+
+          if (local_attribute.length) {
+            insertManyBulk(
+              COLLECTION.LOCAL_ATTRIBUTES,
+              local_attribute,
+              (status1, message1, result1) => {
+                if (status1) {
+                  const body = {
+                    product_name: product_name,
+                    product_path: (product_name + "-" + sku + ".html")
+                      .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+                      .join("-"),
+                    sku: sku,
+                    price: price,
+                    msrp: msrp,
+                    description: description,
+                    thumbnail_image: thumbnail_image,
+                    closeup_image: closeup_image,
+                    alternative_images: alternative_images,
+                    shipping_message_id: new ObjectId(shipping_message_id),
+                    country_id: new ObjectId(country_id),
+                    gender: gender,
+                    metaltype: metaltype,
+                    weight: weight,
+                    quantity: quantity,
+                    related_product_ids:
+                      related_product_ids.length > 0
+                        ? related_product_ids.map((item) => new ObjectId(item))
+                        : [],
+                    category_ids:
+                      category_ids.length > 0
+                        ? category_ids.map((item) => new ObjectId(item))
+                        : [],
+                    local_attribute: result1.result.insertedIds.map(
+                      (item) => item._id
+                    ),
+                    global_attribute_ids:
+                      global_attribute_ids.length > 0
+                        ? global_attribute_ids.map((item) => new ObjectId(item))
+                        : [],
+                    created_by: user_id,
+                    status: 0,
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                  };
+
+                  insert(
+                    body,
+                    COLLECTION.PRODUCT,
+                    (status, message, result) => {
+                      res.json({
+                        status: status,
+                        message: message,
+                        result: result,
+                      });
+                    }
+                  );
+                } else {
+                  res.json({ status: false, message: RESPONSE.FAILED });
+                }
+              }
+            );
+          } else {
+            const body = {
+              product_name: product_name,
+              product_path: (product_name + "-" + sku + ".html")
+                .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+                .join("-"),
+              sku: sku,
+              price: price,
+              msrp: msrp,
+              description: description,
+              thumbnail_image: thumbnail_image,
+              closeup_image: closeup_image,
+              alternative_images: alternative_images,
+              shipping_message_id: new ObjectId(shipping_message_id),
+              country_id: new ObjectId(country_id),
+              gender: gender,
+              metaltype: metaltype,
+              weight: weight,
+              quantity: quantity,
+              related_product_ids:
+                related_product_ids.length > 0
+                  ? related_product_ids.map((item) => new ObjectId(item))
+                  : [],
+              category_ids:
+                category_ids.length > 0
+                  ? category_ids.map((item) => new ObjectId(item))
+                  : [],
+              local_attribute: [],
+              global_attribute_ids:
+                global_attribute_ids.length > 0
+                  ? global_attribute_ids.map((item) => new ObjectId(item))
+                  : [],
+              created_by: user_id,
+              status: 0,
+              created_at: new Date(),
+              updated_at: new Date(),
+            };
+
+            insert(body, COLLECTION.PRODUCT, (status, message, result) => {
+              res.json({
+                status: status,
+                message: message,
+                result: result,
+              });
             });
-          });
+          }
         }
       }
     );
@@ -98,26 +301,93 @@ router.post(
           {
             $lookup: {
               from: COLLECTION.CATEGORY,
-              localField: "cat_id",
-              foreignField: "_id",
-              as: "category",
+              let: { category_id: "$category_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$category_id"] },
+                  },
+                },
+              ],
+              as: "categories",
             },
           },
-          { $unwind: "$category" },
           {
-            $project: {
-              category_nm: "$category.category_nm",
-              cat_id: 1,
-              code: 1,
-              cost: 1,
-              prd_desc: 1,
-              price: 1,
-              product_nm: 1,
-              status: 1,
-              taxable: 1,
-              weight: 1,
+            $lookup: {
+              from: COLLECTION.LOCAL_ATTRIBUTES,
+              let: { local_attribute_ids: "$local_attribute" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$local_attribute_ids"] },
+                  },
+                },
+                {
+                  $addFields: {
+                    sort: {
+                      $indexOfArray: ["$$local_attribute_ids", "$_id"],
+                    },
+                  },
+                },
+                { $sort: { sort: 1 } },
+              ],
+              as: "local_attributes",
             },
           },
+          {
+            $lookup: {
+              from: COLLECTION.ATTRIBUTES,
+              let: { global_attribute_id: "$global_attribute_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$global_attribute_id"] },
+                  },
+                },
+                {
+                  $addFields: {
+                    sort: {
+                      $indexOfArray: ["$$global_attribute_id", "$_id"],
+                    },
+                  },
+                },
+                { $sort: { sort: 1 } },
+              ],
+              as: "global_attributes",
+            },
+          },
+          {
+            $lookup: {
+              from: COLLECTION.PRODUCT,
+              let: { product_id: "$related_product_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$product_id"] },
+                  },
+                },
+              ],
+              as: "related_products",
+            },
+          },
+          {
+            $lookup: {
+              from: COLLECTION.SHIPPING_MESSAGE,
+              localField: "shipping_message_id",
+              foreignField: "_id",
+              as: "shipping_message",
+            },
+          },
+          { $unwind: "$shipping_message" },
+          {
+            $lookup: {
+              from: COLLECTION.COUNRTY,
+              localField: "country_id",
+              foreignField: "_id",
+              as: "country",
+            },
+          },
+          { $unwind: "$country" },
           {
             $facet: {
               result: [
@@ -127,20 +397,30 @@ router.post(
               total: [{ $count: "total" }],
             },
           },
+          { $unwind: "$total" },
         ],
         COLLECTION.PRODUCT,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total.total,
+              });
+            } else {
+              res.json({
+                status: false,
+                message: RESPONSE.NOT_FOUND,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
-              status: status,
-              message: message,
+              status: false,
+              message: RESPONSE.NOT_FOUND,
               result: [],
               total: 0,
             });
@@ -154,25 +434,7 @@ router.post(
             $match: {
               $or: [
                 {
-                  product_nm: {
-                    $regex: searchKeyWord,
-                    $options: "i",
-                  },
-                },
-                {
-                  price: {
-                    $regex: searchKeyWord,
-                    $options: "i",
-                  },
-                },
-                {
-                  weight: {
-                    $regex: searchKeyWord,
-                    $options: "i",
-                  },
-                },
-                {
-                  prd_desc: {
+                  product_name: {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
@@ -184,7 +446,13 @@ router.post(
                   },
                 },
                 {
-                  cost: {
+                  price: {
+                    $regex: searchKeyWord,
+                    $options: "i",
+                  },
+                },
+                {
+                  sku: {
                     $regex: searchKeyWord,
                     $options: "i",
                   },
@@ -196,26 +464,93 @@ router.post(
           {
             $lookup: {
               from: COLLECTION.CATEGORY,
-              localField: "cat_id",
-              foreignField: "_id",
-              as: "category",
+              let: { category_id: "$category_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ["$category_ids", "$$category_id"] },
+                  },
+                },
+              ],
+              as: "categories",
             },
           },
-          { $unwind: "$category" },
           {
-            $project: {
-              category_nm: "$category.category_nm",
-              cat_id: 1,
-              code: 1,
-              cost: 1,
-              prd_desc: 1,
-              price: 1,
-              product_nm: 1,
-              status: 1,
-              taxable: 1,
-              weight: 1,
+            $lookup: {
+              from: COLLECTION.LOCAL_ATTRIBUTES,
+              let: { local_attribute_ids: "$local_attribute" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$local_attribute_ids"] },
+                  },
+                },
+                {
+                  $addFields: {
+                    sort: {
+                      $indexOfArray: ["$$local_attribute_ids", "$_id"],
+                    },
+                  },
+                },
+                { $sort: { sort: 1 } },
+              ],
+              as: "local_attributes",
             },
           },
+          {
+            $lookup: {
+              from: COLLECTION.ATTRIBUTES,
+              let: { global_attribute_id: "$global_attribute_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $in: ["$_id", "$$global_attribute_id"] },
+                  },
+                },
+                {
+                  $addFields: {
+                    sort: {
+                      $indexOfArray: ["$$global_attribute_id", "$_id"],
+                    },
+                  },
+                },
+                { $sort: { sort: 1 } },
+              ],
+              as: "global_attributes",
+            },
+          },
+          {
+            $lookup: {
+              from: COLLECTION.PRODUCT,
+              let: { product_id: "$related_product_ids" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ["$related_product_ids", "$$product_id"] },
+                  },
+                },
+              ],
+              as: "related_products",
+            },
+          },
+          {
+            $lookup: {
+              from: COLLECTION.SHIPPING_MESSAGE,
+              localField: "shipping_message_id",
+              foreignField: "_id",
+              as: "shipping_message",
+            },
+          },
+          { $unwind: "$shipping_message" },
+          {
+            $lookup: {
+              from: COLLECTION.COUNRTY,
+              localField: "country_id",
+              foreignField: "_id",
+              as: "country",
+            },
+          },
+          { $unwind: "$country" },
           {
             $facet: {
               result: [
@@ -225,16 +560,26 @@ router.post(
               total: [{ $count: "total" }],
             },
           },
+          { $unwind: "$total" },
         ],
         COLLECTION.PRODUCT,
         (status, message, result) => {
-          if (result[0].result.length > 0) {
-            res.json({
-              status: status,
-              message: message,
-              result: result[0].result,
-              total: result[0].total[0].total,
-            });
+          if (result.length) {
+            if (result[0].result.length) {
+              res.json({
+                status: status,
+                message: message,
+                result: result[0].result,
+                total: result[0].total.total,
+              });
+            } else {
+              res.json({
+                status: status,
+                message: message,
+                result: [],
+                total: 0,
+              });
+            }
           } else {
             res.json({
               status: status,
@@ -250,52 +595,117 @@ router.post(
 );
 
 router.post(
+  API.ADMIN.PRODUCT.UPDATE_PRODUCT_ATTRIBUTES,
+  validate(updateProductAttribute),
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    const { product_id, local_attribute } = req.body;
+
+    const body = {
+      $set: {
+        local_attribute: local_attribute.map((item) => new ObjectId(item)),
+      },
+    };
+
+    update(
+      { _id: new ObjectId(product_id) },
+      body,
+      COLLECTION.PRODUCT,
+      (status, message, result) => {
+        res.json({ status: status, message: message, result: result });
+      }
+    );
+  }
+);
+
+router.post(
+  API.ADMIN.PRODUCT.UPDATE_PRODUCT_GLOBAL_ATTRIBUTES,
+  validate(updateProductGlobalAttribute),
+  ensureAuthorisedAdmin,
+  (req, res) => {
+    const { product_id, global_attribute_ids } = req.body;
+
+    const body = {
+      $set: {
+        global_attribute_ids: global_attribute_ids.map(
+          (item) => new ObjectId(item)
+        ),
+      },
+    };
+
+    update(
+      { _id: new ObjectId(product_id) },
+      body,
+      COLLECTION.PRODUCT,
+      (status, message, result) => {
+        res.json({ status: status, message: message, result: result });
+      }
+    );
+  }
+);
+
+router.post(
   API.ADMIN.PRODUCT.EDIT_PRODUCT,
   validate(editProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
     const {
-      cat_id,
-      product_nm,
+      product_name,
+      sku,
+      msrp,
       price,
-      weight,
-      prd_desc,
-      code,
-      cost,
-      taxable,
+      description,
+      thumbnail_image,
+      closeup_image,
+      alternative_images,
+      shipping_message_id,
       product_id,
+      related_product_ids,
+      category_ids,
+      country_id,
+      gender,
+      metaltype,
+      weight,
+      quantity,
     } = req.body;
 
     const body = {
       $set: {
-        cat_id: new ObjectId(cat_id),
-        product_nm: product_nm,
+        product_name: product_name,
         price: price,
-        code: code,
-        cost: cost,
+        sku: sku,
+        product_path: (product_name + "-" + sku + ".html")
+          .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+          .join("-"),
+        msrp: msrp,
+        description: description,
+        thumbnail_image: thumbnail_image,
+        closeup_image: closeup_image,
+        alternative_images: alternative_images,
+        shipping_message_id: new ObjectId(shipping_message_id),
+        country_id: new ObjectId(country_id),
+        gender: gender,
+        metaltype: metaltype,
         weight: weight,
-        prd_desc: prd_desc,
-        taxable: taxable,
+        quantity: quantity,
+        related_product_ids:
+          related_product_ids.length > 0
+            ? related_product_ids.map((item) => new ObjectId(item))
+            : [],
+        category_ids:
+          category_ids.length > 0
+            ? category_ids.map((item) => new ObjectId(item))
+            : [],
         updated_at: new Date(),
       },
     };
 
-    view(
+    update(
       { _id: new ObjectId(product_id) },
+      body,
       COLLECTION.PRODUCT,
       (status, message, result) => {
-        if (status) {
-          update(
-            { _id: new ObjectId(product_id) },
-            body,
-            COLLECTION.PRODUCT,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
-            }
-          );
-        } else {
-          res.json({ status: status, message: message, result: result });
-        }
+        res.json({ status: status, message: message, result: result });
       }
     );
   }
@@ -306,22 +716,26 @@ router.post(
   validate(deleteProductSchema),
   ensureAuthorisedAdmin,
   (req, res) => {
-    const { product_id } = req.body;
+    const { product_id, local_attribute } = req.body;
 
-    view(
+    deleteOne(
       { _id: new ObjectId(product_id) },
       COLLECTION.PRODUCT,
       (status, message, result) => {
         if (status) {
-          deleteOne(
-            { _id: new ObjectId(product_id) },
-            COLLECTION.PRODUCT,
-            (status1, message1, result1) => {
-              res.json({ status: status1, message: message1, result: result1 });
+          deleteMany(
+            {
+              $match: {
+                _id: {
+                  $in: [local_attribute.map((item) => new ObjectId(item))],
+                },
+              },
+            },
+            COLLECTION.LOCAL_ATTRIBUTES,
+            (status, message, result) => {
+              res.json({ status: status, message: message, result: result });
             }
           );
-        } else {
-          res.json({ status: status, message: message, result: result });
         }
       }
     );
@@ -379,7 +793,7 @@ router.post(
 
     viewAll(
       {
-        product_nm: { $regex: searchKeyWord },
+        sku: { $regex: searchKeyWord, $options: "i" },
       },
       COLLECTION.PRODUCT,
       (status, message, result) => {
