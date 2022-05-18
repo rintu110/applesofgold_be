@@ -14,7 +14,6 @@ module.exports = {
     description: yup.string().trim(),
     thumbnail_image: yup.string().trim().url(),
     closeup_image: yup.string().trim().url(),
-    country_id: yup.string().trim().matches(REGEXP.OBJECT_ID, _ID.INVALID),
     gender: yup.string().trim().oneOf(["male", "female", "other"]),
     metaltype: yup.string().trim(),
     weight: yup.string().trim(),
@@ -22,10 +21,6 @@ module.exports = {
     alternative_images: yup
       .array()
       .of(yup.string().trim().url(PRODUCT.ALTERNATIVE_IMAGE)),
-    shipping_message_id: yup
-      .string()
-      .trim()
-      .matches(REGEXP.OBJECT_ID, _ID.INVALID),
     related_product_ids: yup
       .array()
       .of(yup.string().trim().matches(REGEXP.OBJECT_ID, _ID.INVALID)),
@@ -71,7 +66,6 @@ module.exports = {
     description: yup.string().trim(),
     thumbnail_image: yup.string().trim().url(),
     closeup_image: yup.string().trim().url(),
-    country_id: yup.string().trim().matches(REGEXP.OBJECT_ID, _ID.INVALID),
     gender: yup.string().trim().oneOf(["male", "female", "other"]),
     metaltype: yup.string().trim(),
     weight: yup.string().trim(),
@@ -79,10 +73,6 @@ module.exports = {
     alternative_images: yup
       .array()
       .of(yup.string().trim().url(PRODUCT.ALTERNATIVE_IMAGE)),
-    shipping_message_id: yup
-      .string()
-      .trim()
-      .matches(REGEXP.OBJECT_ID, _ID.INVALID),
     product_id: yup
       .string()
       .trim()

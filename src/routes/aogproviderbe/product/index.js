@@ -189,8 +189,12 @@ router.post(
                     thumbnail_image: thumbnail_image,
                     closeup_image: closeup_image,
                     alternative_images: alternative_images,
-                    shipping_message_id: new ObjectId(shipping_message_id),
-                    country_id: new ObjectId(country_id),
+                    shipping_message_id:
+                      shipping_message_id === null
+                        ? null
+                        : new ObjectId(shipping_message_id),
+                    country_id:
+                      country_id === null ? null : new ObjectId(country_id),
                     gender: gender,
                     metaltype: metaltype,
                     weight: weight,
@@ -245,8 +249,11 @@ router.post(
               thumbnail_image: thumbnail_image,
               closeup_image: closeup_image,
               alternative_images: alternative_images,
-              shipping_message_id: new ObjectId(shipping_message_id),
-              country_id: new ObjectId(country_id),
+              shipping_message_id:
+                shipping_message_id === null
+                  ? null
+                  : new ObjectId(shipping_message_id),
+              country_id: country_id === null ? null : new ObjectId(country_id),
               gender: gender,
               metaltype: metaltype,
               weight: weight,
@@ -378,7 +385,6 @@ router.post(
               as: "shipping_message",
             },
           },
-          { $unwind: "$shipping_message" },
           {
             $lookup: {
               from: COLLECTION.COUNRTY,
@@ -387,7 +393,6 @@ router.post(
               as: "country",
             },
           },
-          { $unwind: "$country" },
           {
             $facet: {
               result: [
@@ -541,7 +546,6 @@ router.post(
               as: "shipping_message",
             },
           },
-          { $unwind: "$shipping_message" },
           {
             $lookup: {
               from: COLLECTION.COUNRTY,
@@ -550,7 +554,6 @@ router.post(
               as: "country",
             },
           },
-          { $unwind: "$country" },
           {
             $facet: {
               result: [
