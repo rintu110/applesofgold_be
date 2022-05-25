@@ -36,9 +36,10 @@ router.post(
       category_nm: category_nm,
       category_header: [],
       category_footer: [],
-      category_path: (category_nm + "-" + code + ".html")
-        .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
-        .join("-"),
+      category_path:
+        (category_nm + "-" + code)
+          .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+          .join("-") + ".html",
       code: code,
       status: 0,
       created_at: new Date(),
@@ -193,9 +194,10 @@ router.post(
       $set: {
         category_nm: category_nm,
         code: code,
-        category_path: (category_nm + "-" + code + ".html")
-          .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
-          .join("-"),
+        category_path:
+          (category_nm + "-" + code)
+            .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+            .join("-") + ".html",
         updated_at: new Date(),
       },
     };

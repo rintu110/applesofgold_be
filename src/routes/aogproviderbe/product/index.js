@@ -179,9 +179,10 @@ router.post(
                 if (status1) {
                   const body = {
                     product_name: product_name,
-                    product_path: (product_name + "-" + sku + ".html")
-                      .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
-                      .join("-"),
+                    product_path:
+                      (product_name + "-" + sku)
+                        .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+                        .join("-") + ".html",
                     sku: sku,
                     price: price,
                     msrp: msrp,
@@ -677,9 +678,10 @@ router.post(
         product_name: product_name,
         price: price,
         sku: sku,
-        product_path: (product_name + "-" + sku + ".html")
-          .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
-          .join("-"),
+        product_path:
+          (product_name + "-" + sku)
+            .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+            .join("-") + ".html",
         msrp: msrp,
         description: description,
         thumbnail_image: thumbnail_image,
