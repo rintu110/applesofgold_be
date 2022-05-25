@@ -36,7 +36,9 @@ router.post(
       category_nm: category_nm,
       category_header: [],
       category_footer: [],
-      category_path: (category_nm + "-" + code + ".html").split(" ").join("-"),
+      category_path: (category_nm + "-" + code + ".html")
+        .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
+        .join("-"),
       code: code,
       status: 0,
       created_at: new Date(),
@@ -192,7 +194,7 @@ router.post(
         category_nm: category_nm,
         code: code,
         category_path: (category_nm + "-" + code + ".html")
-          .split(" ")
+          .split(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/)
           .join("-"),
         updated_at: new Date(),
       },
